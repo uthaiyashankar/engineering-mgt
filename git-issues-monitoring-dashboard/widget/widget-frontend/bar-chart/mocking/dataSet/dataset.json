@@ -1,0 +1,66 @@
+[
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "API Management",
+    "TotalIssueCount": 1202,
+    "L1IssueCount": 13,
+    "L2IssueCount": 26,
+    "L3IssueCount": 68
+  },
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "Automation",
+    "TotalIssueCount": 4,
+    "L1IssueCount": 0,
+    "L2IssueCount": 0,
+    "L3IssueCount": 0
+  },
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "Identity and Access Management",
+    "TotalIssueCount": 1395,
+    "L1IssueCount": 27,
+    "L2IssueCount": 32,
+    "L3IssueCount": 56
+  },
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "Integration",
+    "TotalIssueCount": 888,
+    "L1IssueCount": 4,
+    "L2IssueCount": 14,
+    "L3IssueCount": 17
+  },
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "IoT",
+    "TotalIssueCount": 305,
+    "L1IssueCount": 2,
+    "L2IssueCount": 2,
+    "L3IssueCount": 14
+  },
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "Platform",
+    "TotalIssueCount": 255,
+    "L1IssueCount": 1,
+    "L2IssueCount": 5,
+    "L3IssueCount": 3
+  },
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "Research",
+    "TotalIssueCount": 3,
+    "L1IssueCount": 0,
+    "L2IssueCount": 0,
+    "L3IssueCount": 0
+  },
+  {
+    "TimeStamp": "1549876940865",
+    "ProductName": "Streaming Analytics",
+    "TotalIssueCount": 152,
+    "L1IssueCount": 1,
+    "L2IssueCount": 11,
+    "L3IssueCount": 18
+  }
+]

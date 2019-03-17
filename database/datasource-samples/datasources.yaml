@@ -1,0 +1,36 @@
+
+  #Datasource for Release Readiness Matrices dashboards
+  - name: RRMDatasource
+    description: Datasource used for Release Rediness Metrics Dashboard
+    jndiConfig:
+      name: jdbc/RRMDatasource
+    definition:
+      type: RDBMS
+      configuration:
+        jdbcUrl: 'jdbc:mysql://192.168.100.66:3306/WSO2_PRODUCT_COMPONENT?useSSL=false'
+        username: admin
+        password: admin
+        driverClassName: com.mysql.jdbc.Driver
+        maxPoolSize: 50
+        idleTimeout: 60000
+        connectionTestQuery: SELECT 1
+        validationTimeout: 30000
+        isAutoCommit: false
+   
+  - name: RRTDatasource
+    description: Datasource used for Release Rediness Metrics Dashboard
+    jndiConfig:
+      name: jdbc/RRMDatasource
+    definition:
+      type: RDBMS
+      configuration:
+        jdbcUrl: 'jdbc:mysql://192.168.100.66:3306/WSO2_PRODUCT_COMPONENT?useSSL=false'
+        username: admin
+        password: admin
+        driverClassName: com.mysql.jdbc.Driver
+        maxPoolSize: 50
+        idleTimeout: 60000
+        connectionTestQuery: SELECT 1
+        validationTimeout: 30000
+        isAutoCommit: false
+
