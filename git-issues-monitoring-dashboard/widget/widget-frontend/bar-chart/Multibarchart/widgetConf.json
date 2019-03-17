@@ -1,0 +1,31 @@
+{
+ "name": "Issue Count By Product",
+ "id": "Multibarchart",
+ "thumbnailURL": "",
+
+ "configs": {
+   "pubsub": {
+     "types": [""]
+   },
+   "providerConfig": {
+     "configs": {
+       "type": "RDBMSBatchDataProvider",
+       "config": {
+         "datasourceName": "RRTDatasource",
+         "tableName": "IssueCount",
+         "queryData": {
+           "query": "Select * from IssueCount"
+         },
+         "incrementalColumn": "TimeStamp",
+         "publishingInterval": 5,
+         "publishingLimit": 100,
+         "selectedId": ""
+       }
+     }
+   }
+ },
+ "chartConfigs": {
+   "x_axis": "ProductName",
+   "y_axis": ["L1IssueCount", "L2IssueCount", "L3IssueCount"]
+ }
+}

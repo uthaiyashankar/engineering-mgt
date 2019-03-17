@@ -1,0 +1,3 @@
+# RRM dashboards backend URLs
+rrm.configs:
+  mprBackendUrl: 'http://localhost:9090'

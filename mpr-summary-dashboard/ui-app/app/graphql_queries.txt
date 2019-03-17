@@ -1,0 +1,25 @@
+{
+  repositoryOwner(login: "wso2") {
+    repository(name: "product-apim") {
+      pullRequests(first: 10, states: [MERGED]) {
+        edges {
+          node {
+            title
+            state
+            createdAt
+            updatedAt
+            url
+            body
+            comments(last: 10) {
+              edges {
+                node {
+                  body
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

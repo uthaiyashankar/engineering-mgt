@@ -1,0 +1,12 @@
+{
+  "name": "CodeCoverageTable",
+  "id": "CodeCoverageTable",
+  "thumbnailURL": "",
+  "configs": {
+    "providerConfig": {
+      "configs": {
+        "reports_server_path": ""
+      }
+    }
+  }
+}

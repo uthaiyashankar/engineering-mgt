@@ -1,0 +1,272 @@
+-- MySQL dump 10.13  Distrib 5.7.24, for Linux (x86_64)
+--
+-- Host: 192.168.100.66    Database: WSO2_PRODUCT_COMPONENT
+-- ------------------------------------------------------
+-- Server version	5.5.5-10.1.37-MariaDB-0+deb9u1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `CODE_COVERAGE_SUMMARY`
+--
+
+DROP TABLE IF EXISTS `CODE_COVERAGE_SUMMARY`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `CODE_COVERAGE_SUMMARY` (
+  `PRODUCT_ID` int(11) NOT NULL,
+  `BUILDS` varchar(450) DEFAULT NULL,
+  `DATE` datetime NOT NULL,
+  `TOTAL_INSTRUCTIONS` int(11) DEFAULT NULL,
+  `MISSED_INSTRUCTIONS` int(11) DEFAULT NULL,
+  `TOTAL_BRANCHES` int(11) DEFAULT NULL,
+  `MISSED_BRANCHES` int(11) DEFAULT NULL,
+  `TOTAL_CXTY` int(11) DEFAULT NULL,
+  `MISSED_CXTY` int(11) DEFAULT NULL,
+  `TOTAL_LINES` int(11) DEFAULT NULL,
+  `MISSED_LINES` int(11) DEFAULT NULL,
+  `TOTAL_METHODS` int(11) DEFAULT NULL,
+  `MISSED_METHODS` int(11) DEFAULT NULL,
+  `TOTAL_CLASSES` int(11) DEFAULT NULL,
+  `MISSED_CLASSES` int(11) DEFAULT NULL,
+  PRIMARY KEY (`DATE`),
+  KEY `FK_CODE_COVERAGE_SUMMARY_1` (`PRODUCT_ID`),
+  CONSTRAINT `FK_CODE_COVERAGE_SUMMARY_1` FOREIGN KEY (`PRODUCT_ID`) REFERENCES `PRODUCT` (`PRODUCT_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `DEPENDENCY_SUMMARY`
+--
+
+DROP TABLE IF EXISTS `DEPENDENCY_SUMMARY`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `DEPENDENCY_SUMMARY` (
+  `SUMMARY_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `REPO_ID` int(11) NOT NULL,
+  `USING_LASTEST_VERSIONS` int(11) DEFAULT NULL,
+  `NEXT_VERSION_AVAILABLE` int(11) DEFAULT NULL,
+  `NEXT_INCREMENTAL_AVAILABLE` int(11) DEFAULT NULL,
+  `NEXT_MINOR_AVAILABLE` int(11) DEFAULT NULL,
+  `NEXT_MAJOR_AVAILABLE` int(11) DEFAULT NULL,
+  PRIMARY KEY (`SUMMARY_ID`),
+  KEY `FK_DEPENDENCY_SUMMARY_1` (`REPO_ID`),
+  CONSTRAINT `FK_DEPENDENCY_SUMMARY_1` FOREIGN KEY (`REPO_ID`) REFERENCES `PRODUCT_REPOS` (`REPO_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `GITHUB_USERS`
+--
+
+DROP TABLE IF EXISTS `GITHUB_USERS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `GITHUB_USERS` (
+  `USER_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `EMAIL_ADDRESS` varchar(100) DEFAULT NULL,
+  `USERNAME` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`USER_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=651 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `IssueCount`
+--
+
+DROP TABLE IF EXISTS `IssueCount`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `IssueCount` (
+  `TimeStamp` varchar(100) NOT NULL,
+  `ProductName` varchar(100) NOT NULL,
+  `TotalIssueCount` int(11) DEFAULT NULL,
+  `L1IssueCount` int(11) DEFAULT NULL,
+  `L2IssueCount` int(11) DEFAULT NULL,
+  `L3IssueCount` int(11) DEFAULT NULL,
+  PRIMARY KEY (`ProductName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PRODUCT`
+--
+
+DROP TABLE IF EXISTS `PRODUCT`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PRODUCT` (
+  `PRODUCT_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `PRODUCT_NAME` varchar(100) NOT NULL,
+  `PRODUCT_ABBR` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`PRODUCT_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PRODUCT_CODE_QUALITY_MEASUREMENTS`
+--
+
+DROP TABLE IF EXISTS `PRODUCT_CODE_QUALITY_MEASUREMENTS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PRODUCT_CODE_QUALITY_MEASUREMENTS` (
+  `PRODUCT_MEASUREMENT_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `TIME` datetime DEFAULT CURRENT_TIMESTAMP,
+  `PRODUCT_ID` int(11) NOT NULL,
+  `PRODUCT_LINE_COVERAGE` float DEFAULT NULL,
+  `PRODUCT_CODE_LINES_TO_COVER` int(11) DEFAULT NULL,
+  PRIMARY KEY (`PRODUCT_MEASUREMENT_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1025 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PRODUCT_MILESTONES`
+--
+
+DROP TABLE IF EXISTS `PRODUCT_MILESTONES`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PRODUCT_MILESTONES` (
+  `MILESTONE_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `MILESTONE_NAME` varchar(100) NOT NULL,
+  `START_DATE` datetime NOT NULL,
+  `END_DATE` datetime NOT NULL,
+  `VERSION_ID` int(11) NOT NULL,
+  PRIMARY KEY (`MILESTONE_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PRODUCT_PRS`
+--
+
+DROP TABLE IF EXISTS `PRODUCT_PRS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PRODUCT_PRS` (
+  `PR_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `PR_AUTHOR` varchar(100) DEFAULT NULL,
+  `PR_URL` varchar(500) NOT NULL,
+  `PR_TITLE` varchar(500) NOT NULL,
+  `CREATED_DATE` datetime NOT NULL,
+  `MERGED_DATE` datetime DEFAULT NULL,
+  `DOC_STATUS` int(11) NOT NULL,
+  `MARKETING_STATUS` int(11) NOT NULL,
+  `MILESTONE` varchar(100) DEFAULT NULL,
+  `PRODUCT_ID` int(11) DEFAULT NULL,
+  `BRANCH_ID` int(11) DEFAULT NULL,
+  `REPO_ID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`PR_ID`),
+  KEY `FK_PRODUCT_PRS_1` (`PRODUCT_ID`),
+  CONSTRAINT `FK_PRODUCT_PRS_1` FOREIGN KEY (`PRODUCT_ID`) REFERENCES `PRODUCT` (`PRODUCT_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=4215 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PRODUCT_REPOS`
+--
+
+DROP TABLE IF EXISTS `PRODUCT_REPOS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PRODUCT_REPOS` (
+  `REPO_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `REPO_NAME` varchar(100) NOT NULL,
+  `REPO_URL` varchar(500) NOT NULL,
+  `BUILD_URL` varchar(500) DEFAULT NULL,
+  `PRODUCT_ID` int(11) NOT NULL,
+  `ORG_ID` int(11) NOT NULL,
+  `REPO_OWNER` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`REPO_ID`),
+  UNIQUE KEY `REPO_NAME_UNIQUE` (`REPO_NAME`),
+  KEY `PRODUCT_ID` (`PRODUCT_ID`),
+  KEY `ORG_ID` (`ORG_ID`),
+  CONSTRAINT `FK_PRODUCT_REPOS_1` FOREIGN KEY (`PRODUCT_ID`) REFERENCES `PRODUCT` (`PRODUCT_ID`),
+  CONSTRAINT `FK_PRODUCT_REPOS_2` FOREIGN KEY (`ORG_ID`) REFERENCES `REPO_ORGS` (`ORG_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=624 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PRODUCT_VERSIONS`
+--
+
+DROP TABLE IF EXISTS `PRODUCT_VERSIONS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PRODUCT_VERSIONS` (
+  `VERSION_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `VERSION` varchar(100) NOT NULL,
+  `PRODUCT_ID` int(11) NOT NULL,
+  PRIMARY KEY (`VERSION_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `REPO_BRANCHES`
+--
+
+DROP TABLE IF EXISTS `REPO_BRANCHES`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `REPO_BRANCHES` (
+  `BRANCH_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `BRANCH_NAME` varchar(100) NOT NULL,
+  `REPO_ID` int(11) NOT NULL,
+  `VERSION_ID` int(11) NOT NULL,
+  PRIMARY KEY (`BRANCH_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=261 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `REPO_CODE_QUALITY_MEASUREMENTS`
+--
+
+DROP TABLE IF EXISTS `REPO_CODE_QUALITY_MEASUREMENTS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `REPO_CODE_QUALITY_MEASUREMENTS` (
+  `REPO_MEASUREMENT_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `TIME` datetime DEFAULT CURRENT_TIMESTAMP,
+  `REPO_ID` int(11) NOT NULL,
+  `PRODUCT_ID` int(11) NOT NULL,
+  `REPO_LINE_COVERAGE` float DEFAULT NULL,
+  `REPO_CODE_LINES_TO_COVER` int(11) DEFAULT NULL,
+  PRIMARY KEY (`REPO_MEASUREMENT_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=11361 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `REPO_ORGS`
+--
+
+DROP TABLE IF EXISTS `REPO_ORGS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `REPO_ORGS` (
+  `ORG_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `ORG_NAME` varchar(100) NOT NULL,
+  PRIMARY KEY (`ORG_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2019-03-14 17:23:57

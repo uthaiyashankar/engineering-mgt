@@ -1,0 +1,32 @@
+.main {
+    width: 100%;
+    min-height: 500px;
+    /* text-align: center; */
+    display: block;
+}
+
+.form {
+    min-width: 150px;
+    width: 200px;
+    margin: 50px 50px !important;
+    display: -webkit-inline-box !important;
+}
+
+.table {
+    margin: 0px 50px;
+    width: 90%;
+    min-width: 1000px;
+}
+
+.select-wrap {
+    margin-right: 10px;
+}
+
+.select-wrap label{
+    position: relative !important;
+}
+
+.select {
+    min-width: 150px;
+    width: 200px;
+}

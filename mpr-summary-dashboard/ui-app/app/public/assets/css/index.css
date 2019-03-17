@@ -1,0 +1,15 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+header {
+    border: 0;
+    height: 3px;
+    background-color: black;
+    background : black;
+    border-bottom: solid;
+    border-bottom-color: #ff820e;
+}
+
