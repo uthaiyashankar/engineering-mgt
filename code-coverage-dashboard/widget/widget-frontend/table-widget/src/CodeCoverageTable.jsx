@@ -27,40 +27,6 @@ import Paper from '@material-ui/core/Paper';
 import {createMuiTheme, MuiThemeProvider, withStyles} from '@material-ui/core/styles';
 
 // styles
-const darkTheme = createMuiTheme({
-    palette: {
-        type: 'dark'
-    },
-    typography: {
-        fontFamily: [
-            "Roboto",
-            "-apple-system",
-            "BlinkMacSystemFont",
-            "Segoe UI",
-            "Arial",
-            "sans-serif"
-        ].join(","),
-        useNextVariants: true
-    }
-});
-
-const lightTheme = createMuiTheme({
-    palette: {
-        type: 'light'
-    },
-    typography: {
-        fontFamily: [
-            "Roboto",
-            "-apple-system",
-            "BlinkMacSystemFont",
-            "Segoe UI",
-            "Arial",
-            "sans-serif"
-        ].join(","),
-        useNextVariants: true
-    }
-});
-
 const PageWrapper = withStyles({
     root: {
         padding: '30px',
@@ -70,9 +36,6 @@ const PageWrapper = withStyles({
 })(Paper);
 
 const styles = {
-    h4: {
-        marginBottom: '20px'
-    },
     table: {
         tableHead: {
             tableCell: {
@@ -82,7 +45,10 @@ const styles = {
             }
         },
         TableHead: {
-            textDecoration: 'uppercase'
+            textDecoration: 'uppercase',
+            TableRow: {
+                display: "block",
+            }
         },
         tableBody: {
             tableCell: {
@@ -99,10 +65,15 @@ const styles = {
                 fontWeight: 700,
                 'border-top': '2pt solid gray'
             }
+        },
+        TableBody: {
+            display: "block",
+            width: "100%",
+            overflow: "auto",
+            height: "100px",
         }
     },
     formControl: {
-        margin: '0 20px 30px 0',
         minWidth: 120,
     },
 };
@@ -110,17 +81,16 @@ const styles = {
 const dateHeaderStyle = {
     paddingLeft: "40px",
     display: "inline-block",
-    marginRight: "10px",
+    marginTop: 0,
 };
 
 const dateStyle = {
     display: "inline-block",
     align: "center",
-    marginLeft: "25px",
 };
 
 const builds = {
-    fontSize: "11px",
+    fontSize: "10px",
 };
 
 const label = {
@@ -139,6 +109,22 @@ const lastReportLink = {
 const errorReport = {
     color: "#f44336",
     fontSize: "12px",
+};
+
+const DateDiv = {
+    float: "left",
+};
+
+const ReportDiv = {
+    float: "right",
+};
+
+const TableBorder = {
+    border: "2px solid #aaa",
+};
+
+const TableDiv = {
+    overflowX: "auto",
 };
 
 // methods
@@ -278,70 +264,19 @@ class CodeCoverageTable extends Widget {
             return <p>No results found.</p>;
         } else {
             return (
-                <MuiThemeProvider theme={this.props.muiTheme.name === 'dark' ? darkTheme : lightTheme}>
+                <MuiThemeProvider>
                     <PageWrapper>
-                        <div className="coverage-table">
+                        <div style={TableDiv}>
 
-                            <div>
-                                <p style={dateHeaderStyle}>Select Date</p>
+                            <div style={DateDiv}>
+                                <p style={dateHeaderStyle}>Select Date &nbsp;</p>
                                 <DatePicker style={dateStyle}
                                             selected={this.state.date}
                                             onChange={this.changeDate}
-                                            includeDates={this.state.allowedDates}
-                                />
+                                            includeDates={this.state.allowedDates}/>
                             </div>
 
-                            <Paper>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell align="center"
-                                                       style={styles.table.tableHead.tableCell}>PRODUCT</TableCell>
-                                            <TableCell align="center"
-                                                       style={styles.table.tableHead.tableCell}>BUILDS</TableCell>
-                                            <TableCell align="right"
-                                                       style={styles.table.tableHead.tableCell}>INSTRUCTION(%)</TableCell>
-                                            <TableCell align="right"
-                                                       style={styles.table.tableHead.tableCell}>BRANCHES(%)</TableCell>
-                                            <TableCell align="right"
-                                                       style={styles.table.tableHead.tableCell}>COMPLEXITY(%)</TableCell>
-                                            <TableCell align="right"
-                                                       style={styles.table.tableHead.tableCell}>LINES(%)</TableCell>
-                                            <TableCell align="right"
-                                                       style={styles.table.tableHead.tableCell}>METHODS(%)</TableCell>
-                                            <TableCell align="right"
-                                                       style={styles.table.tableHead.tableCell}>CLASSES(%)</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {this.state.tableSummary.map((row, index) => (
-                                            <TableRow key={index}
-                                                      style={((row[1] > 0) ? styles.table.tableBody.tableCell.cursorPointer : styles.table.tableBody.tableCell.cursorText)}
-                                                      hover>
-                                                <TableCell component="th" scope="row"
-                                                           align="left">{row.name}</TableCell>
-                                                <TableCell style={builds}
-                                                           align="left">{formatBuildString(row.build_no)}</TableCell>
-                                                <TableCell
-                                                    align="right">{getPercentage(row.data.totalIns, row.data.missIns)}</TableCell>
-                                                <TableCell
-                                                    align="right">{getPercentage(row.data.totalBranches, row.data.missBranches)}</TableCell>
-                                                <TableCell
-                                                    align="right">{getPercentage(row.data.totalCxty, row.data.missCxty)}</TableCell>
-                                                <TableCell
-                                                    align="right">{getPercentage(row.data.totalLines, row.data.missLines)}</TableCell>
-                                                <TableCell
-                                                    align="right">{getPercentage(row.data.totalMethods, row.data.missMethods)}</TableCell>
-                                                <TableCell
-                                                    align="right">{getPercentage(row.data.totalClasses, row.data.missClasses)}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </Paper>
-
-                            <div>
-                                <br/>
+                            <div style={ReportDiv}>
                                 {this.state.reportPathLoaded && this.state.SERVER_PATH.length > 0 &&
                                 <div style={lastReport}>
                                     <span>Last report</span>
@@ -361,7 +296,7 @@ class CodeCoverageTable extends Widget {
                                     <span><a
                                         href={this.state.SERVER_PATH + "/code-coverage-generator/code_coverage_reports/ei"}
                                         target="_blank" style={lastReportLink}>Integration</a></span>
-                                    <span> ] </span>
+                                    <span> ] &nbsp;</span>
                                 </div>
                                 }
                                 {this.state.reportPathLoaded && !this.state.SERVER_PATH.length > 0 &&
@@ -379,6 +314,63 @@ class CodeCoverageTable extends Widget {
                                 </div>
                                 }
                             </div>
+
+                            <Table style={TableBorder}>
+                                <colgroup>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '30%'}}/>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '10%'}}/>
+                                </colgroup>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="center"
+                                                   style={styles.table.tableHead.tableCell}>PRODUCT</TableCell>
+                                        <TableCell align="center"
+                                                   style={styles.table.tableHead.tableCell}>BUILDS</TableCell>
+                                        <TableCell align="right"
+                                                   style={styles.table.tableHead.tableCell}>INSTRUCTIONS (%)</TableCell>
+                                        <TableCell align="right"
+                                                   style={styles.table.tableHead.tableCell}>BRANCHES (%)</TableCell>
+                                        <TableCell align="right"
+                                                   style={styles.table.tableHead.tableCell}>COMPLEXITY (%)</TableCell>
+                                        <TableCell align="right"
+                                                   style={styles.table.tableHead.tableCell}>LINES (%)</TableCell>
+                                        <TableCell align="right"
+                                                   style={styles.table.tableHead.tableCell}>METHODS (%)</TableCell>
+                                        <TableCell align="right"
+                                                   style={styles.table.tableHead.tableCell}>CLASSES (%)</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {this.state.tableSummary.map((row, index) => (
+                                        <TableRow key={index}
+                                                  style={((row[1] > 0) ? styles.table.tableBody.tableCell.cursorPointer : styles.table.tableBody.tableCell.cursorText)}
+                                                  hover>
+                                            <TableCell component="th" scope="row"
+                                                       align="left">{row.name}</TableCell>
+                                            <TableCell style={builds}
+                                                       align="left">{formatBuildString(row.build_no)}</TableCell>
+                                            <TableCell
+                                                align="right">{getPercentage(row.data.totalIns, row.data.missIns)}</TableCell>
+                                            <TableCell
+                                                align="right">{getPercentage(row.data.totalBranches, row.data.missBranches)}</TableCell>
+                                            <TableCell
+                                                align="right">{getPercentage(row.data.totalCxty, row.data.missCxty)}</TableCell>
+                                            <TableCell
+                                                align="right">{getPercentage(row.data.totalLines, row.data.missLines)}</TableCell>
+                                            <TableCell
+                                                align="right">{getPercentage(row.data.totalMethods, row.data.missMethods)}</TableCell>
+                                            <TableCell
+                                                align="right">{getPercentage(row.data.totalClasses, row.data.missClasses)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
                     </PageWrapper>
                 </MuiThemeProvider>

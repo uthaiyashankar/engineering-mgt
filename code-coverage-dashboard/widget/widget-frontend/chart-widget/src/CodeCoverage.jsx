@@ -39,40 +39,6 @@ TabContainer.propTypes = {
 };
 
 // styles
-const darkTheme = createMuiTheme({
-    palette: {
-        type: 'dark'
-    },
-    typography: {
-        fontFamily: [
-            "Roboto",
-            "-apple-system",
-            "BlinkMacSystemFont",
-            "Segoe UI",
-            "Arial",
-            "sans-serif"
-        ].join(","),
-        useNextVariants: true
-    }
-});
-
-const lightTheme = createMuiTheme({
-    palette: {
-        type: 'light'
-    },
-    typography: {
-        fontFamily: [
-            "Roboto",
-            "-apple-system",
-            "BlinkMacSystemFont",
-            "Segoe UI",
-            "Arial",
-            "sans-serif"
-        ].join(","),
-        useNextVariants: true
-    }
-});
-
 const PageWrapper = withStyles({
     root: {
         padding: '30px',
@@ -80,6 +46,11 @@ const PageWrapper = withStyles({
         boxShadow: 'none'
     }
 })(Paper);
+
+const DivBoarder = {
+    border: "2px solid #aaa",
+    overflowX: "auto",
+};
 
 export function getPercentage(total, miss) {
     return (((total - miss) / total) * 100).toFixed(2)
@@ -192,10 +163,9 @@ class CodeCoverage extends Component {
         } else {
             this.state.chartData = getChartData(this.state.chartSummary);
             return (
-                <MuiThemeProvider theme={this.props.muiTheme.name === 'dark' ? darkTheme : lightTheme}>
+                <MuiThemeProvider>
                     <PageWrapper>
-                        <Paper>
-                            <div className="component-chart">
+                            <div style={DivBoarder}>
                                 <AppBar position="static">
                                     <Tabs value={value} onChange={this.handleChange}>
                                         <Tab label="Instruction Coverage"/>
@@ -219,7 +189,6 @@ class CodeCoverage extends Component {
                                 {value === 5 &&
                                 <TabContainer><LineChart data={this.state.chartData[5]} curve={false}/></TabContainer>}
                             </div>
-                        </Paper>
                     </PageWrapper>
                 </MuiThemeProvider>
             );
