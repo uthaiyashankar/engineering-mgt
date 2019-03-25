@@ -1,11 +1,12 @@
 import ballerina/io;
 import ballerina/sql;
 import ballerinax/jdbc;
+import ballerina/config;
 
 jdbc:Client dependencyUpdatesDb = new({
-        url: "jdbc:mysql://192.168.100.66:3306/WSO2_PRODUCT_COMPONENT",
-        username: "admin",
-        password: "admin",
+        url: config:getAsString("DATABASE_URL"),
+        username: config:getAsString("DATABASE_USERNAME"),
+        password: config:getAsString("DATABASE_PASSWORD"),
         poolOptions: { maximumPoolSize: 5 },
         dbOptions: { useSSL: false }
     });
@@ -38,12 +39,13 @@ public function getSummeryData() returns (json) {
     if (selectRet is table<Summery>) {
         var jsonConversionRet = json.convert(selectRet);
         if (jsonConversionRet is json) {
+            log:printInfo("Successfully retrived summary data");
             return jsonConversionRet;
         } else {
-            io:println("Error in table to json conversion");
+            log:printError("Error in table to json conversion");
         }
     } else {
-        io:println("Select data from student table failed: "
+        log:printError("Select data from DEPENDENCY_SUMMARY table failed: "
                 + <string>selectRet.detail().message);
     }
 }
@@ -55,12 +57,13 @@ public function getProductDetails() returns (json) {
     if (selectRet is table<Product>) {
         var jsonConversionRet = json.convert(selectRet);
         if (jsonConversionRet is json) {
+            log:printInfo("Successfully retrived product data");
             return jsonConversionRet;
         } else {
-            io:println("Error in table to json conversion");
+            log:printError("Error in table to json conversion");
         }
     } else {
-        io:println("Select data from student table failed: "
+        log:printError("Select data from student table failed: "
                 + <string>selectRet.detail().message);
     }
 }
