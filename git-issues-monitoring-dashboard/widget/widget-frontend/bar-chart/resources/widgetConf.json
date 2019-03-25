@@ -1,31 +1,45 @@
 {
- "name": "Issue Count By Product",
- "id": "Multibarchart",
- "thumbnailURL": "",
-
- "configs": {
-   "pubsub": {
-     "types": [""]
-   },
-   "providerConfig": {
-     "configs": {
-       "type": "RDBMSBatchDataProvider",
-       "config": {
-         "datasourceName": "RRTDatasource",
-         "tableName": "IssueCount",
-         "queryData": {
-           "query": "Select * from IssueCount"
-         },
-         "incrementalColumn": "TimeStamp",
-         "publishingInterval": 5,
-         "publishingLimit": 100,
-         "selectedId": ""
-       }
-     }
-   }
- },
- "chartConfigs": {
-   "x_axis": "ProductName",
-   "y_axis": ["L1IssueCount", "L2IssueCount", "L3IssueCount"]
- }
+  "name": "Issue Count By Product",
+  "id": "Multibarchart",
+  "thumbnailURL": "",
+  "configs": {
+    "pubsub": {
+      "types": [
+        ""
+      ]
+    },
+    "providerConfig": {
+      "configs": {
+        "type": "RDBMSBatchDataProvider",
+        "config": {
+          "datasourceName": "RRMDatasource",
+          "tableName": "GIT_ISSUE_COUNT",
+          "queryData": {
+            "query": "SELECT * FROM WSO2_PRODUCT_COMPONENT.GIT_ISSUE_COUNT"
+          },
+          "incrementalColumn": "TotalIssueCount",
+          "publishingInterval": 5,
+          "publishingLimit": 100,
+          "selectedId": ""
+        }
+      }
+    }
+  },
+  "chartConfigs": {
+    "x_axis": "ProductName",
+    "y_axis": [
+      {
+        "name": "L1IssueCount",
+        "color": "#b60205"
+      },
+      {
+        "name": "L2IssueCount",
+        "color": "#ff9900"
+      },
+      {
+        "name": "L3IssueCount",
+        "color": "#fbca04"
+      }
+    ]
+  }
 }

@@ -92,7 +92,7 @@ function insertIntoIssueCountTable(json message) {
         int l2IssueCount = <int>message[productIterator].L2IssueCount;
         int l3IssueCount = <int>message[productIterator].L3IssueCount;
 
-        var ret = productRepoTable->update("INSERT INTO IssueCount(TimeStamp, ProductName, TotalIssueCount,
+        var ret = productRepoTable->update("INSERT INTO GIT_ISSUE_COUNT(TimeStamp, ProductName, TotalIssueCount,
         L1IssueCount, L2IssueCount,L3IssueCount) Values ( \"" + currentTime.time + "\",\"" + productName + "\"," +
                 totalIssueCount + ","
                 + l1IssueCount + "," + l2IssueCount + ","

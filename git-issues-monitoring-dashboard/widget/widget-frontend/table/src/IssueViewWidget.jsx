@@ -237,16 +237,13 @@ const components = {
 
 
 /**
- * Demonstrates how to retrieve user information from a widget.
- */
+ * Issue View Widget
+ * */
 
 class IssueViewWidget extends Widget {
     /**
      * Constructor.
      */
-
-    
-
     constructor(props) {
         console.log("Constructor called");
         super(props);
@@ -262,6 +259,7 @@ class IssueViewWidget extends Widget {
             productSuggestionsArray:[],
             repoSuggestionsArray:[],
             arrangedData:[],
+            loading: false
         };
 
         this.tableColumns = [{
@@ -270,20 +268,20 @@ class IssueViewWidget extends Widget {
             Cell: this.getNormalCellComponent,
             Filter: props => {
                 return (
-                  <input
-                    style={{width: "70%", backgroundColor:"#132630", color:"#ffffff"}}
-                    placeholder='Search for Repo Name..'
-                    onChange={event => {
-                        this.setState({
-                            repoFilterValue: event.target.value
-                        });
-                        props.onChange(event.target.value);
-                    }} 
-                    value={this.state.repoFilterValue || ''}
-                  />
+                    <input
+                        style={{width: "70%", backgroundColor:"#132630", color:"#ffffff"}}
+                        placeholder='Search for Repo Name..'
+                        onChange={event => {
+                            this.setState({
+                                repoFilterValue: event.target.value
+                            });
+                            props.onChange(event.target.value);
+                        }}
+                        value={this.state.repoFilterValue || ''}
+                    />
                 );
-              },
-              filterMethod: (filter, row) => {
+            },
+            filterMethod: (filter, row) => {
                 const id = filter.pivotId || filter.id;
                 var record = row[id];
                 if(record instanceof Array){
@@ -306,20 +304,20 @@ class IssueViewWidget extends Widget {
             Cell: this.getNormalCellComponent,
             Filter: props => {
                 return (
-                  <input
-                  style={{width: "70%", backgroundColor:"#132630", color:"#ffffff"}}
-                    placeholder='Search for Issue Title.. '
-                    onChange={event => {
-                        this.setState({
-                            issueFilterValue: event.target.value
-                        });
-                        props.onChange(event.target.value);
-                    }}                     
-                    value={this.state.issueFilterValue || ''}
-                  />
+                    <input
+                        style={{width: "70%", backgroundColor:"#132630", color:"#ffffff"}}
+                        placeholder='Search for Issue Title.. '
+                        onChange={event => {
+                            this.setState({
+                                issueFilterValue: event.target.value
+                            });
+                            props.onChange(event.target.value);
+                        }}
+                        value={this.state.issueFilterValue || ''}
+                    />
                 );
-              },
-              filterMethod: (filter, row) => {
+            },
+            filterMethod: (filter, row) => {
                 const id = filter.pivotId || filter.id;
                 var record = row[id];
                 if(record instanceof Array){
@@ -342,19 +340,19 @@ class IssueViewWidget extends Widget {
             Cell: this.getNormalCellComponent,
             Filter: props => {
                 return (
-                  <input
-                    style={{width: "70%",backgroundColor:"#132630", color:"#ffffff"}}
-                    placeholder='Search for Label..'
-                    onChange={event => {
-                        this.setState({
-                            labelFilterValue: event.target.value
-                        });
-                        props.onChange(event.target.value);
-                    }} 
-                    value={this.state.labelFilterValue || ""}
-                  />
+                    <input
+                        style={{width: "70%",backgroundColor:"#132630", color:"#ffffff"}}
+                        placeholder='Search for Label..'
+                        onChange={event => {
+                            this.setState({
+                                labelFilterValue: event.target.value
+                            });
+                            props.onChange(event.target.value);
+                        }}
+                        value={this.state.labelFilterValue || ""}
+                    />
                 );
-              },
+            },
             filterMethod: (filter, row) => {
                 const id = filter.pivotId || filter.id;
                 var record = row[id];
@@ -400,7 +398,7 @@ class IssueViewWidget extends Widget {
         this.setState({
             repo_name: value,
         },()=> {
-             console.log(this.state.repo_name);   
+            console.log(this.state.repo_name);
         });
     };
 
@@ -409,48 +407,48 @@ class IssueViewWidget extends Widget {
     }
     handleProductChange(value){
         if(value != null){
-        axios.create({
-            withCredentials: false,
-        }).get("https://"+window.location.host+window.contextPath+"/apis/gitIssues/repos/"+value.value
-        ).then(res=>{
-            var i = 0;
-            repoSuggestions = [];
-            res.data.forEach(repo => {
-                var labelObject = {};
-                labelObject.label = repo;
-                repoSuggestions[i] = labelObject;
-                i = i + 1;
-            });
-            this.setState({
-                repoSuggestionsArray : repoSuggestions.map(repoSuggestions => ({
-                    value: repoSuggestions.label,
-                    label: repoSuggestions.label,
-                })),
-            });
+            axios.create({
+                withCredentials: false,
+            }).get("https://"+window.location.host+window.contextPath+"/apis/gitIssues/repos/"+value.value
+            ).then(res=>{
+                var i = 0;
+                repoSuggestions = [];
+                res.data.forEach(repo => {
+                    var labelObject = {};
+                    labelObject.label = repo;
+                    repoSuggestions[i] = labelObject;
+                    i = i + 1;
+                });
+                this.setState({
+                    repoSuggestionsArray : repoSuggestions.map(repoSuggestions => ({
+                        value: repoSuggestions.label,
+                        label: repoSuggestions.label,
+                    })),
+                });
 
-        });
-    }else {
-        axios.create({
-            withCredentials: false,
-        }).get("https://"+window.location.host+window.contextPath+"/apis/gitIssues/repos/all"
-        ).then(res=>{
-            var i = 0;
-            repoSuggestions = [];
-            res.data.forEach(repo => {
-                var labelObject = {};
-                labelObject.label = repo;
-                repoSuggestions[i] = labelObject;
-                i = i + 1;
             });
-            this.setState({
-                repoSuggestionsArray : repoSuggestions.map(repoSuggestions => ({
-                    value: repoSuggestions.label,
-                    label: repoSuggestions.label,
-                })),
-            });
+        }else {
+            axios.create({
+                withCredentials: false,
+            }).get("https://"+window.location.host+window.contextPath+"/apis/gitIssues/repos/all"
+            ).then(res=>{
+                var i = 0;
+                repoSuggestions = [];
+                res.data.forEach(repo => {
+                    var labelObject = {};
+                    labelObject.label = repo;
+                    repoSuggestions[i] = labelObject;
+                    i = i + 1;
+                });
+                this.setState({
+                    repoSuggestionsArray : repoSuggestions.map(repoSuggestions => ({
+                        value: repoSuggestions.label,
+                        label: repoSuggestions.label,
+                    })),
+                });
 
-        });
-    }
+            });
+        }
         this.setState({
             product : value,
         },() =>{
@@ -458,9 +456,30 @@ class IssueViewWidget extends Widget {
         });
     };
 
+    renderPreLoader = () => {
+        return (
+            <div className={"outer-div"}>
+                <div className={"center-div"}>
+                    <div className={"inner-div"}>
+                        <div>
+                            <h2>Loading Data....</h2>
+                            <div className={"psoload"}>
+                                <div className={"straight"} />
+                                <div className={"curve"} />
+                                <div className={"center"} />
+                                <div className={"inner"} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     handleClick(){
         this.setState({
             data : [],
+            loading: true
         },() =>{
             console.log(this.state.data);
         });
@@ -482,18 +501,18 @@ class IssueViewWidget extends Widget {
                     "labels":JSON.stringify(labelArray),
                     "repos" : JSON.stringify(repoArray),
                 }
-            }).then(res => { 
+            }).then(res => {
                 var response =  res.data;
                 var tempArray =[];
                 response.forEach(
-                    rec => { 
+                    rec => {
                         console.log(rec);
                         rec.issues.forEach(issue =>{ tempArray.push(issue)});
                     });
                 this.setState({
                     data: tempArray,
                     loading: false
-            });
+                });
             })
         }else if(this.state.product != null && this.state.repo_name ==null){
             if (this.state.labels != null ){
@@ -512,21 +531,22 @@ class IssueViewWidget extends Widget {
                     var response =  res.data;
                     var tempArray =[];
                     response.forEach(
-                        rec => { 
+                        rec => {
                             console.log(rec);
                             if(rec.issues.length >0 ){
-                            rec.issues.forEach(issue =>{ tempArray.push(issue)});
-                        }
+                                rec.issues.forEach(issue =>{ tempArray.push(issue)});
+                            }
                         });
                     this.setState({
-                    data: tempArray
-                });
+                        data: tempArray,
+                        loading: false
+                    });
                 }
             )
         }
     };
 
-    
+
 
     componentDidMount() {
         if(productSuggestions.length==0){
@@ -548,7 +568,7 @@ class IssueViewWidget extends Widget {
                         label: productSuggestions.label,
                     })),
                 });
-    
+
             });
         }
         if(this.state.product==null){
@@ -570,7 +590,7 @@ class IssueViewWidget extends Widget {
                         label: repoSuggestions.label,
                     })),
                 });
-    
+
             });
         }
     }
@@ -642,9 +662,6 @@ class IssueViewWidget extends Widget {
             </div>)
     }
 
-    arrangeData(data){
-    }
-
     disableButton(){
         if(repo_name ==""  || product =="" ){
             return true
@@ -653,8 +670,19 @@ class IssueViewWidget extends Widget {
         }
     }
 
+    renderTable(){
+        return(
+            <ReactTable
+                className={this.props.muiTheme.name === 'light' ? 'lightTheme' : 'darkTheme'}
+                data={this.state.data}
+                columns={this.tableColumns}
+                style={{ width: "100%" }}
+                filterable
+            />
+        );
+    }
+
     render() {
-        alert("render called");
         const {classes, theme} = this.props;
         let {data} = this.state;
 
@@ -673,7 +701,7 @@ class IssueViewWidget extends Widget {
                 useNextVariants: true,
             },
         });
-        
+
         return (
             data.forEach(d => {
                 d.labels = [];
@@ -690,32 +718,26 @@ class IssueViewWidget extends Widget {
                     }else{
                         d.labels.push(<span style={{flexBasis:'100%',paddingLeft:"12px"}}><span id='issue-other'>{l}</span></span>);
                     }
-                });
+                })
                 d.issueTitleWitheURL.push(<a href={d.url} target="_blank">{d.issueTitle}</a>)
 
             }),
 
-            <MuiThemeProvider theme={reactTheme}>
-                <div style={{margin: '1% 2% 0 2%'}}>
-                    <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '30px'}}>
-                        {this.renderProductSearchDropDown(classes , selectStyles, productSuggestions, components)}
-                        {this.renderRepoMultiSelect(classes,selectStyles,repoSuggestions,components)}
-                        {this.renderLabelMultiSelect(classes , selectStyles, suggestions, components)}
-                        <div style={{paddingTop: '15px'}}>
-                            <Button variant="contained" className={classes.button} color="primary" onClick={this.handleClick}>Search</Button>
+                <MuiThemeProvider theme={reactTheme}>
+                    <div style={{margin: '1% 2% 0 2%'}}>
+                        <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '30px'}}>
+                            {this.renderProductSearchDropDown(classes , selectStyles, productSuggestions, components)}
+                            {this.renderRepoMultiSelect(classes,selectStyles,repoSuggestions,components)}
+                            {this.renderLabelMultiSelect(classes , selectStyles, suggestions, components)}
+                            <div style={{paddingTop: '15px'}}>
+                                <Button variant="contained" className={classes.button} color="primary" onClick={this.handleClick}>Search</Button>
+                            </div>
+                        </div>
+                        <div style={{clear: 'both'}}>
+                            {this.state.loading ? this.renderPreLoader() : this.renderTable()}
                         </div>
                     </div>
-                    <div style={{clear: 'both'}}>
-                        <ReactTable
-                            className={this.props.muiTheme.name === 'light' ? 'lightTheme' : 'darkTheme'}
-                            data={data}
-                            columns={this.tableColumns}
-                            style={{ width: "100%" }}
-                            filterable
-                        />
-                    </div>
-                </div>
-            </MuiThemeProvider>
+                </MuiThemeProvider>
         );
     }
 }

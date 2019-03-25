@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.wso2.gitIssueService</groupId>
+    <artifactId>git-Issue-Service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <parent>
+        <groupId>org.wso2</groupId>
+        <artifactId>wso2</artifactId>
+        <version>5</version>
+    </parent>
+
+    <dependencyManagement>
+
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+            <version>2.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.dashboards</groupId>
+            <artifactId>org.wso2.carbon.dashboards.core</artifactId>
+            <version>4.0.15</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.uiserver</groupId>
+            <artifactId>org.wso2.carbon.uiserver</artifactId>
+            <version>0.19.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <export.package>
+            org.wso2.gitissueservice.*,
+        </export.package>
+        <import.package>
+            *;resolution:=optional
+        </import.package>
+        <private.package>
+            org.apache.http.*,
+        </private.package>
+        <carbon.component>
+            osgi.service; objectClass="org.wso2.carbon.uiserver.spi.RestApiProvider"
+        </carbon.component>
+    </properties>
+
+</project>
