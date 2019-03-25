@@ -15,6 +15,16 @@ it shows how code coverage has changed in last 3 months in a line chart.
 
 ### GIT Issue Monitoring Dashboard
 
+This dashboard consists with 2 widgets.
+
+*Issue Count By Product*
+
+This widget shows the L1 issue count(issues with Severity/Blocker label) L2 issue count (issues with Severity/Critical label) and L3 issue count (issues with Severity/Major label) by product.
+
+*Issue View Widget*
+
+This widget is consists with a table where you can search git issues by product, repos and labels.  
+
 ### Merged PR Summary Dashboard
 
 This contains both Merged PR dashboard and Merged PR Summary dashboard.
