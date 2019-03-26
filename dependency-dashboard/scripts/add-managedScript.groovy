@@ -12,12 +12,12 @@ void processFolder(Item folder) {
   }
 }
 
-/*Configure maven deployer for a job*/
+/*Add the managed script to the job post build action. ScriptId can be found by inspecting the html element 
+of an already added script, or in the config.xml of a job of a job that has already added that script*/  
 void addManageScript(Item job){
   Boolean exists = false;
-  String scriptId="b8400b2f-959c-40e9-98ad-fb0a7ba60510";
+  String scriptId="<Your script id>";
   try {
-
     postBuilders = job.getPostbuilders()
     
     if (postBuilders != null){

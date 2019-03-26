@@ -12,7 +12,13 @@ links are provided for detailed coverage report for each team. And also
 it shows how code coverage has changed in last 3 months in a line chart.
 
 ### Dependency Dashboard
+This dashboard shows the dependency details of each wso2 repos. It contains the details such as
 
+* Number of dependencies using the latest version available
+* Number of dependencies where the next version available is smaller than the patch version update
+* Number of dependencies where the next version available is an patch version update
+* Number of dependencies where the next version available is a minor version update		 
+* Number of dependencies where the next version available is a major version update	
 ### GIT Issue Monitoring Dashboard
 
 This dashboard consists with 2 widgets.

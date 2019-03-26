@@ -1,1 +1,1 @@
-/home/debian/BallerinaGITIssue/ballerina-0.990.2/bin/ballerina run -c /home/debian/dependency-dashboard/ballerina.conf /home/debian/dependency-dashboard/update_database.balx
+ballerina run -c /home/debian/dependency-dashboard/ballerina.conf /home/debian/dependency-dashboard/update_database.balx

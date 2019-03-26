@@ -194,5 +194,5 @@ typings/
 .dynamodb/
 
 .DS_STORE
-
+target/
 # End of https://www.gitignore.io/api/node,java,intellij
