@@ -18,6 +18,7 @@ import ballerina/io;
 import ballerina/sql;
 import ballerinax/jdbc;
 import ballerina/config;
+import ballerina/log;
 
 jdbc:Client dependencyUpdatesDb = new({
         url: config:getAsString("DATABASE_URL"),
