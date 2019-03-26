@@ -327,7 +327,6 @@ class DependencyDashboard extends Widget {
                                             handleChange={(e) => this.handleChange(e, 'repo')} />
                         </div>
                     </FormControl>
-                    {console.log(lastReportUrl)}
                     <Paper className='table'>
                         <Table >
                             <TableHead>
