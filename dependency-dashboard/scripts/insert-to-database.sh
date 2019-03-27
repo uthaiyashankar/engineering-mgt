@@ -1,0 +1,1 @@
+ballerina run -c /home/debian/dependency-dashboard/ballerina.conf /home/debian/dependency-dashboard/update_database.balx

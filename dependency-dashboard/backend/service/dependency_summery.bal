@@ -1,11 +1,29 @@
+//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import ballerina/io;
 import ballerina/sql;
 import ballerinax/jdbc;
+import ballerina/config;
+import ballerina/log;
 
 jdbc:Client dependencyUpdatesDb = new({
-        url: "jdbc:mysql://192.168.100.66:3306/WSO2_PRODUCT_COMPONENT",
-        username: "admin",
-        password: "admin",
+        url: config:getAsString("DATABASE_URL"),
+        username: config:getAsString("DATABASE_USERNAME"),
+        password: config:getAsString("DATABASE_PASSWORD"),
         poolOptions: { maximumPoolSize: 5 },
         dbOptions: { useSSL: false }
     });
@@ -38,12 +56,13 @@ public function getSummeryData() returns (json) {
     if (selectRet is table<Summery>) {
         var jsonConversionRet = json.convert(selectRet);
         if (jsonConversionRet is json) {
+            log:printInfo("Successfully retrived summary data");
             return jsonConversionRet;
         } else {
-            io:println("Error in table to json conversion");
+            log:printError("Error in table to json conversion");
         }
     } else {
-        io:println("Select data from student table failed: "
+        log:printError("Select data from DEPENDENCY_SUMMARY table failed: "
                 + <string>selectRet.detail().message);
     }
 }
@@ -55,12 +74,13 @@ public function getProductDetails() returns (json) {
     if (selectRet is table<Product>) {
         var jsonConversionRet = json.convert(selectRet);
         if (jsonConversionRet is json) {
+            log:printInfo("Successfully retrived product data");
             return jsonConversionRet;
         } else {
-            io:println("Error in table to json conversion");
+            log:printError("Error in table to json conversion");
         }
     } else {
-        io:println("Select data from student table failed: "
+        log:printError("Select data from student table failed: "
                 + <string>selectRet.detail().message);
     }
 }

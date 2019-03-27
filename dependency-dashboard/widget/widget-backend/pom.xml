@@ -6,7 +6,7 @@
 
     <groupId>org.wso2.mprservice</groupId>
     <artifactId>dependency-dashboard-backend-service</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>bundle</packaging>
     <parent>
         <groupId>org.wso2</groupId>
