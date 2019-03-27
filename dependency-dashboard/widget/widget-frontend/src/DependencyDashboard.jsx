@@ -273,7 +273,7 @@ class DependencyDashboard extends Widget {
         const { dependencyData, productData, selectedOrg, selectedProduct, selectedRepo } = this.state;
         const { nextIncremental, nextMajor, nextMinor, nextVersion, usingLatestVersion } = this.state;
         const lastReportUrl = this.state.selectedRepo ?
-            "https://wso2.org/jenkins/view/sonar/job/sonar/job/sonar-" + this.state.selectedRepo + "/dependency-updates-report/" : ''
+            "https://wso2.org/jenkins/view/sonar/job/sonar/job/sonar-" + this.state.selectedRepo + "/Dependency_20Report/" : ''
         const organizationList = productData ? Object.keys(productData).map(key => {
             return <MenuItem value={key}>{key}</MenuItem>;
         }) : <MenuItem value={'None'}>None</MenuItem>;
