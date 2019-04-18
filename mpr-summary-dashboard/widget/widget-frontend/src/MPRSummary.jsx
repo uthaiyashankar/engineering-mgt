@@ -373,19 +373,6 @@ class MPRSummary extends Widget {
     }
 
     componentDidMount() {
-        // this.loadProducts();
-
-        // // If the query params contain a product & version they will be used
-        // let alreadySelectedProduct = super.getGlobalState("selectedProduct");
-        // let alreadySelectedVersion = super.getGlobalState("selectedVersion");
-        // if ((!(Object.getOwnPropertyNames(alreadySelectedProduct).length === 0))
-        //     && (!(Object.getOwnPropertyNames(alreadySelectedVersion).length === 0))) {
-        //     this.setState({
-        //         selectedProduct: alreadySelectedProduct,
-        //         selectedVersion: alreadySelectedVersion
-        //     });
-        // }
-
         this.loadProducts();
     }
 
