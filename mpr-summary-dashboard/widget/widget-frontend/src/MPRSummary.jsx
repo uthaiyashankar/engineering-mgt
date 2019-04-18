@@ -31,6 +31,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+import Widget from '@wso2-dashboards/widget';
 import appendQuery from 'append-query';
 import axios from 'axios';
 import { mprdashboard as mprDashboardUrl } from './config.json';
@@ -129,9 +130,7 @@ const styles = {
     },
 };
 
-let noData;
-
-class MPRSummary extends React.Component {
+class MPRSummary extends Widget {
 
     constructor(props, context) {
         super(props);
@@ -146,8 +145,8 @@ class MPRSummary extends React.Component {
                 <FormattedMessage id='table.no.results.available' defaultMessage='No results available' />,
             requirePagination: this.props.requirePagination || false,
             selectedOption: null,
-            selectedProduct: '',
-            selectedVersion: '',
+            selectedProduct: super.getGlobalState('product'),
+            selectedVersion: super.getGlobalState('version'),
             totalPRCount: 0,
             products: [],
             versions: []
@@ -195,12 +194,13 @@ class MPRSummary extends React.Component {
         axios.get(getProductsUrl)
             .then(response => {
                 if (response.hasOwnProperty("data")) {
-                    let productArray = Object.values(response.data.data);
+                    let products = Object.values(response.data.data);
+                    let selectedProduct = this.state.selectedProduct || products[0];
                     this.setState({
-                        products: productArray,
-                        // selectedProduct:response.data.data[0]
+                        products,
+                        selectedProduct
                     });
-                    // this.loadVersions(response.data.data[0]);
+                    this.loadVersions(selectedProduct);
                 } else {
                     console.error("No data in products.");
                 }
@@ -215,18 +215,19 @@ class MPRSummary extends React.Component {
     /**
      * Retrieve versions of the prodcuts
      * */
-    loadVersions(selectedProduct) {
-        const getVersions = hostUrl + '/versions?product=' + selectedProduct;
-        axios.get(getVersions)
+    loadVersions(product) {
+        const url = hostUrl + '/versions?product=' + product;
+        axios.get(url)
             .then(response => {
                 if (response.hasOwnProperty("data")) {
-                    let versionArray = Object.values(response.data.data);
-                    versionArray.unshift("All");
+                    let versions = Object.values(response.data.data);
+                    versions.unshift("All");
+                    let selectedVersion = this.state.selectedVersion || versions[0];
                     this.setState({
-                        versions: versionArray,
-                        selectedVersion: versionArray[0],
+                        versions,
+                        selectedVersion
                     });
-                    this.loadPRTable(selectedProduct, versionArray[0])
+                    this.loadPRTable(product, selectedVersion)
                 } else {
                     console.error("Versions not available.");
                 }
@@ -312,11 +313,12 @@ class MPRSummary extends React.Component {
      * */
     handleChangeProduct(event) {
         let selectedProduct = event.target.value;
-        this.setState({ selectedProduct })
+        this.setState({ selectedProduct });
         this.clearVersion();
         this.clearTable();
-
         this.loadVersions(selectedProduct);
+        super.setGlobalState("product", selectedProduct);
+        super.setGlobalState("version", "All");
     }
 
     /**
@@ -325,8 +327,8 @@ class MPRSummary extends React.Component {
     handleChangeVersion(event) {
         let selectedVersion = event.target.value;
         this.setState({ selectedVersion });
+        super.setGlobalState("version", selectedVersion);
         this.clearTable();
-
         this.loadPRTable(this.state.selectedProduct, selectedVersion);
     }
 
@@ -371,6 +373,19 @@ class MPRSummary extends React.Component {
     }
 
     componentDidMount() {
+        // this.loadProducts();
+
+        // // If the query params contain a product & version they will be used
+        // let alreadySelectedProduct = super.getGlobalState("selectedProduct");
+        // let alreadySelectedVersion = super.getGlobalState("selectedVersion");
+        // if ((!(Object.getOwnPropertyNames(alreadySelectedProduct).length === 0))
+        //     && (!(Object.getOwnPropertyNames(alreadySelectedVersion).length === 0))) {
+        //     this.setState({
+        //         selectedProduct: alreadySelectedProduct,
+        //         selectedVersion: alreadySelectedVersion
+        //     });
+        // }
+
         this.loadProducts();
     }
 
