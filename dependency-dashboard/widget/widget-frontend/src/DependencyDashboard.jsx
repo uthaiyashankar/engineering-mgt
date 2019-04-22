@@ -272,7 +272,8 @@ class DependencyDashboard extends Widget {
     render() {
         const { dependencyData, productData, selectedOrg, selectedProduct, selectedRepo } = this.state;
         const { nextIncremental, nextMajor, nextMinor, nextVersion, usingLatestVersion } = this.state;
-
+        const lastReportUrl = this.state.selectedRepo ?
+            "https://wso2.org/jenkins/view/sonar/job/sonar/job/sonar-" + this.state.selectedRepo + "/Dependency_20Report/" : ''
         const organizationList = productData ? Object.keys(productData).map(key => {
             return <MenuItem value={key}>{key}</MenuItem>;
         }) : <MenuItem value={'None'}>None</MenuItem>;
@@ -326,7 +327,6 @@ class DependencyDashboard extends Widget {
                                             handleChange={(e) => this.handleChange(e, 'repo')} />
                         </div>
                     </FormControl>
-
                     <Paper className='table'>
                         <Table >
                             <TableHead>
@@ -343,8 +343,15 @@ class DependencyDashboard extends Widget {
                                 {tableRowList}
                             </TableBody>
                         </Table>
+                        {this.state.selectedRepo ? <a href={lastReportUrl} style={{
+                            'color': 'white' ,
+                            'text-decoration': 'underline',
+                            'float': 'right',
+                            'margin': '50px 0px'
+                        }}> Click to view lastest report</a> : ''}
                     </Paper>
                 </MuiThemeProvider>
+
             </div>
         );
     }
