@@ -38,22 +38,18 @@ public class DataHolder {
      * @return Instance of DataHolder
      */
     public static DataHolder getInstance() {
-
         return instance;
     }
 
     public ConfigProvider getConfigProvider() {
-
         return configProvider;
     }
 
     public void setConfigProvider(ConfigProvider configProvider) {
-
         this.configProvider = configProvider;
     }
 
     public void removeConfigProvider() {
-
         this.configProvider = null;
     }
 }

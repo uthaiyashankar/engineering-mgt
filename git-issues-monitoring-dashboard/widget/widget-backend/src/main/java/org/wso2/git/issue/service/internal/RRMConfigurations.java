@@ -40,7 +40,6 @@ public class RRMConfigurations {
     private String gitIssueBackendUrl = "";
 
     public String getGitIssueBackendUrl() {
-
         return gitIssueBackendUrl;
     }
 
