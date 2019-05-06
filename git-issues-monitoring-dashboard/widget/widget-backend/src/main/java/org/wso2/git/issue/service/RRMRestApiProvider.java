@@ -75,4 +75,10 @@ public class RRMRestApiProvider implements RestApiProvider {
     protected void setConfigProvider(ConfigProvider configProvider) {
         DataHolder.getInstance().setConfigProvider(configProvider);
     }
+
+    protected void unsetConfigProvider(ConfigProvider configProvider) {
+        DataHolder.getInstance().removeConfigProvider();
+        log.debug("An instance of class '{}' unregistered as a config provider.",
+                configProvider.getClass().getName());
+    }
 }

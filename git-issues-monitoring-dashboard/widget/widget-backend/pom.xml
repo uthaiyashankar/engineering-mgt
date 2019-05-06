@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.wso2.gitIssueService</groupId>
-    <artifactId>git-Issue-Service</artifactId>
+    <groupId>org.wso2.git.issue.service</groupId>
+    <artifactId>git-issue-service</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <parent>
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>org.wso2.carbon.uiserver</groupId>
             <artifactId>org.wso2.carbon.uiserver</artifactId>
-            <version>0.19.5</version>
+            <version>1.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
@@ -43,7 +43,7 @@
 
     <properties>
         <export.package>
-            org.wso2.gitissueservice.*,
+            org.wso2.git.issue.service.*,
         </export.package>
         <import.package>
             *;resolution:=optional
@@ -55,5 +55,4 @@
             osgi.service; objectClass="org.wso2.carbon.uiserver.spi.RestApiProvider"
         </carbon.component>
     </properties>
-
 </project>

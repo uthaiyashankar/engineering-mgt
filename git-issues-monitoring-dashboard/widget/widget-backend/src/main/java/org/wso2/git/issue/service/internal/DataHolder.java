@@ -51,4 +51,9 @@ public class DataHolder {
 
         this.configProvider = configProvider;
     }
+
+    public void removeConfigProvider() {
+
+        this.configProvider = null;
+    }
 }
