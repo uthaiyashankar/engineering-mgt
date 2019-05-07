@@ -62,6 +62,6 @@ This will create the balx files in engineering-mgt/mpr-summary-dashboard/backend
 - Schedule daily_updater.balx to be executed once a day and pr_status_emailer.balx to be executed weekly.
 - Start the dashboard_services.balx in the background by issuing below in engineering-mgt/mpr-summary-dashboard/backend
 ``` 
-  <Ballerina runtime>/bin/ballerina run daily_updater.balx
+  <Ballerina runtime>/bin/ballerina run dashboard_services.balx
 ```
 - Now the Merged PR dashboard backend is ready to be used. 

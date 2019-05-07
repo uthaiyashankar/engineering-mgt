@@ -4,6 +4,13 @@ To install the dependencies required to to build this widget, navigate to the en
 ```
 npm install
 ```
+The engineering-mgt/mpr-summary-dashboard/widget/widget-frontend/src/config.json contains the url for the original Merged PR dashboard, which is deployed using WSO2 Application Server.
+
+```
+{
+    "mprdashboard": "http://<hostname>:<port>/<webapp_name>"
+}
+```
 
 Go to the engineering-mgt/mpr-summary-dashboard/widget/**widget-frontend** directory and issue the following command to build the widget.
 ```
