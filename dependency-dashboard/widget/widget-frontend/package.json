@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^3.9.2",
-    "@wso2-dashboards/widget": "^1.2.2",
+    "@wso2-dashboards/widget": "^1.4.0",
     "axios": "^0.18.0",
     "babel-preset-stage-2": "^6.24.1",
     "d3": "^4.12.0",
