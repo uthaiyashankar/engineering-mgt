@@ -77,9 +77,12 @@ class DependencyDashboard extends Widget {
             width: this.props.glContainer.width,
             height: this.props.glContainer.height,
             selectedProduct: null,
+            selectedOrg : null,
             orgOpen: false,
             repoOpen: false,
             productOpen: false,
+            globalProduct : super.getGlobalState('product'),
+            globalOrg : super.getGlobalState('org')
         };
 
         this.styles = {
@@ -129,10 +132,22 @@ class DependencyDashboard extends Widget {
                     dependencyData: dependencyData,
                     productData: productData,
                 });
+                //Check if states are empty. If empty dont assign it to selectedOrg and selectedProduct
+                if( !(this.isEmpty(this.state.globalOrg)) || !(this.isEmpty(this.state.globalProduct)) ) {
+                    console.log("Global state recieved. Setting selectedOrg and selectedProduct");           
+                    this.setState({
+                        selectedProduct : this.state.globalProduct,
+                        selectedOrg : this.state.globalOrg
+                    },this.calculateSelectedProductSummery)
+                }
             })
             .catch(error => {
                 console.error(error);
             })
+    }
+
+    isEmpty(obj) {
+        return Object.keys(obj).length === 0;
     }
 
     handleChange(event, type) {
