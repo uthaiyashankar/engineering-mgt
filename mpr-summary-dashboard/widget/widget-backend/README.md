@@ -8,7 +8,7 @@ Add the Ballerina service url to <SP_HOME>/conf/dashboard/deployment.yaml follow
 
 ```
 # RRM dashboards backend URLs
-rrm.configs:
+rrm.mpr.configs:
   mprBackendUrl: 'http://localhost:9090'
 ```
 
