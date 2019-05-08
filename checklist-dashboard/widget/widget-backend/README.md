@@ -13,7 +13,7 @@ rrm.checklist.configs:
 ```
 
 To build the widget-backend intermediate service run below command from 
-engineering-mgt/mpr-summary-dashboard/widget/**widget-backend**
+engineering-mgt/checklist-dashboard/widget/**widget-backend**
 ```
 mvn clean install
 ```
