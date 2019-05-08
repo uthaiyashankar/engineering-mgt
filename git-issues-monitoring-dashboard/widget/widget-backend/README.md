@@ -9,7 +9,7 @@ Add the Ballerina service url to <SP_HOME>/conf/dashboard/deployment.yaml follow
 ```
 # RRM dashboards backend URLs
 rrm.gitissue.configs:
-  mprBackendUrl: 'http://localhost:9090'
+  gitIssueBackendUrl: 'http://localhost:9090'
 ```
 
 To build the widget-backend intermediate service run below command from 
