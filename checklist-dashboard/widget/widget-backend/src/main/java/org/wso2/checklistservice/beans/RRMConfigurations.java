@@ -27,7 +27,7 @@ import org.wso2.carbon.config.annotation.Element;
  * Bean class for RRM dashboards
  **/
 
-@Configuration(namespace = "rrm.configs", description = "WSO2 Release Readiness Matrices Dashboard Configs")
+@Configuration(namespace = "rrm.checklist.configs", description = "WSO2 Release Readiness Matrices Dashboard Configs")
 public class RRMConfigurations {
 
     /**

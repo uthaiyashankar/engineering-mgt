@@ -7,7 +7,7 @@ The widget will call the endpoints mentioned in this service and the service is 
 Add the Ballerina service url to <SP_HOME>/conf/dashboard/deployment.yaml
 ```
 # RRM dashboards backend URLs
-rrm.configs:
+rrm.dependency.configs:
   dependencyDashboardBackendUrl: 'http://localhost:9091'
 ```
 

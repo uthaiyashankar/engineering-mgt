@@ -8,12 +8,12 @@ Add the Ballerina service url to <SP_HOME>/conf/dashboard/deployment.yaml follow
 
 ```
 # RRM dashboards backend URLs
-rrm.configs:
+rrm.checklist.configs:
   checklistBackendUrl: 'http://localhost:9090'
 ```
 
 To build the widget-backend intermediate service run below command from 
-engineering-mgt/mpr-summary-dashboard/widget/**widget-backend**
+engineering-mgt/checklist-dashboard/widget/**widget-backend**
 ```
 mvn clean install
 ```
