@@ -8,6 +8,8 @@ before run "ccReportGenerator.sh" file,
 
 run below commands and create the files and directories needed.
 ```
+cd /apache-tomcat/webapps/ROOT/code-coverage-generator
+
 mkdir code_coverage_reports
 
 mkdir old_coverage_reports
