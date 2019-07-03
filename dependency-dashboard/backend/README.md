@@ -15,6 +15,7 @@ Provide the required configurations to ballerina.conf
  * **To configure the cron**
  
  1. `ballerina build update_database`
- 2.  Configure the `insert-to-database.sh` script found in the scripts folder to run
+ 2.  Navigate to /engineering-mgt/dependency-dashboard/scripts and configure the `insert-to-database.sh` script to run
 periodically using a linux cron. Edit the script file with the location of`ballerina.conf` and
 `update_database.balx` files.
+ 3. Run `./insert-to-database.sh`
