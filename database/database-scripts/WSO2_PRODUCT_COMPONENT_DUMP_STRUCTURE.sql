@@ -84,10 +84,10 @@ CREATE TABLE `GITHUB_USERS` (
 -- Table structure for table `IssueCount`
 --
 
-DROP TABLE IF EXISTS `IssueCount`;
+DROP TABLE IF EXISTS `GIT_ISSUE_COUNT`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `IssueCount` (
+CREATE TABLE `GIT_ISSUE_COUNT`(
   `TimeStamp` varchar(100) NOT NULL,
   `ProductName` varchar(100) NOT NULL,
   `TotalIssueCount` int(11) DEFAULT NULL,

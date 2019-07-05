@@ -48,7 +48,7 @@ public class RRMRestApiProvider implements RestApiProvider {
 
     @Activate
     protected void activate(BundleContext bundleContext) {
-        log.debug("{} activated.", this.getClass().getName());
+        log.info("{} activated.", this.getClass().getName());
     }
 
     @Deactivate

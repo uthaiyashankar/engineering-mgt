@@ -44,6 +44,7 @@ public class GitServiceProvider {
         try {
             hostUrl = DataHolder.getInstance().getConfigProvider().getConfigurationObject
                     (RRMConfigurations.class).getGitIssueBackendUrl();
+            hostUrl = hostUrl + "/gitIssues/";
         } catch (ConfigurationException e) {
             log.error("Error occurred while reading Host Url for git issue backend ", e);
         }
