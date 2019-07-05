@@ -182,7 +182,7 @@ class CoverageServiceProvider {
         }
 
         String lastReportDateChooser = "SELECT DISTINCT CAST(DATE AS DATE) FROM CODE_COVERAGE_SUMMARY "
-                + "ORDER BY DATE DESC;";
+                + "ORDER BY CAST(DATE AS DATE) DESC;";
         try (PreparedStatement ps = Objects.requireNonNull(dbConnection).prepareStatement(lastReportDateChooser))  {
             ResultSet summaryResult = ps.executeQuery();
             while (summaryResult.next()) {
