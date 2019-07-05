@@ -130,7 +130,11 @@ const TableDiv = {
 // methods
 // get code coverage percentage
 export function getPercentage(total, miss) {
-    return (((total - miss) / total) * 100).toFixed(2)
+    if(total > 0) {
+        return (((total - miss) / total) * 100).toFixed(2)
+    } else {
+        return 0;
+    }
 }
 
 // get date as a string (yyyy-mm-dd)

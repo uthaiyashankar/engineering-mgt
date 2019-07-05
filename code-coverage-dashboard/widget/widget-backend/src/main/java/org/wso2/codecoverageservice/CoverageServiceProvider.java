@@ -139,24 +139,33 @@ class CoverageServiceProvider {
                 ps.setString(2,  date + "%");
                 ResultSet summaryResult = ps.executeQuery();
 
+                String sumDate = "";
+                String sumBuilds = "Error in the last build. Contact admin.";
+                DaySummary daySummary = new DaySummary(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
                 while (summaryResult.next()) {
-                    DaySummary daySummary = new DaySummary(summaryResult.getInt("total_instructions"),
-                                                           summaryResult.getInt("missed_instructions"),
-                                                           summaryResult.getInt("total_branches"),
-                                                           summaryResult.getInt("missed_branches"),
-                                                           summaryResult.getInt("total_cxty"),
-                                                           summaryResult.getInt("missed_cxty"),
-                                                           summaryResult.getInt("total_lines"),
-                                                           summaryResult.getInt("missed_lines"),
-                                                           summaryResult.getInt("total_methods"),
-                                                           summaryResult.getInt("missed_methods"),
-                                                           summaryResult.getInt("total_classes"),
-                                                           summaryResult.getInt("missed_classes"));
-                    productObj.add("data", new Gson().toJsonTree(daySummary));
-                    productObj.addProperty("date", summaryResult.getString("date"));
-                    productObj.addProperty("build_no", summaryResult.getString("builds"));
+                    sumDate = summaryResult.getString("date");
+                    sumBuilds = summaryResult.getString("builds");
+
+                    daySummary.setTotalIns(summaryResult.getInt("total_instructions"));
+                    daySummary.setMissIns(summaryResult.getInt("missed_instructions"));
+                    daySummary.setTotalBranches(summaryResult.getInt("total_branches"));
+                    daySummary.setMissBranches(summaryResult.getInt("missed_branches"));
+                    daySummary.setTotalCxty(summaryResult.getInt("total_cxty"));
+                    daySummary.setMissCxty(summaryResult.getInt("missed_cxty"));
+                    daySummary.setTotalLines(summaryResult.getInt("total_lines"));
+                    daySummary.setMissLines(summaryResult.getInt("missed_lines"));
+                    daySummary.setTotalMethods(summaryResult.getInt("total_methods"));
+                    daySummary.setMissMethods(summaryResult.getInt("missed_methods"));
+                    daySummary.setTotalClasses(summaryResult.getInt("total_classes"));
+                    daySummary.setMissClasses(summaryResult.getInt("missed_classes"));
+
                 }
+                productObj.add("data", new Gson().toJsonTree(daySummary));
+                productObj.addProperty("date", sumDate);
+                productObj.addProperty("build_no", sumBuilds);
                 productObj.addProperty("name", productsResult.getString("product_name"));
+
                 coverageSummary.add(productObj);
             }
         } catch (SQLException e) {

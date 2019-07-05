@@ -37,7 +37,7 @@ public class DaySummary {
         return totalIns;
     }
 
-    private void setTotalIns(int totalIns) {
+    public void setTotalIns(int totalIns) {
         this.totalIns = totalIns;
     }
 
@@ -45,7 +45,7 @@ public class DaySummary {
         return missIns;
     }
 
-    private void setMissIns(int missIns) {
+    public void setMissIns(int missIns) {
         this.missIns = missIns;
     }
 
@@ -53,7 +53,7 @@ public class DaySummary {
         return totalBranches;
     }
 
-    private void setTotalBranches(int totalBranches) {
+    public void setTotalBranches(int totalBranches) {
         this.totalBranches = totalBranches;
     }
 
@@ -61,7 +61,7 @@ public class DaySummary {
         return missBranches;
     }
 
-    private void setMissBranches(int missBranches) {
+    public void setMissBranches(int missBranches) {
         this.missBranches = missBranches;
     }
 
@@ -69,7 +69,7 @@ public class DaySummary {
         return totalCxty;
     }
 
-    private void setTotalCxty(int totalCxty) {
+    public void setTotalCxty(int totalCxty) {
         this.totalCxty = totalCxty;
     }
 
@@ -77,7 +77,7 @@ public class DaySummary {
         return missCxty;
     }
 
-    private void setMissCxty(int missCxty) {
+    public void setMissCxty(int missCxty) {
         this.missCxty = missCxty;
     }
 
@@ -85,7 +85,7 @@ public class DaySummary {
         return totalLines;
     }
 
-    private void setTotalLines(int totalLines) {
+    public void setTotalLines(int totalLines) {
         this.totalLines = totalLines;
     }
 
@@ -93,7 +93,7 @@ public class DaySummary {
         return missLines;
     }
 
-    private void setMissLines(int missLines) {
+    public void setMissLines(int missLines) {
         this.missLines = missLines;
     }
 
@@ -101,7 +101,7 @@ public class DaySummary {
         return totalMethods;
     }
 
-    private void setTotalMethods(int totalMethods) {
+    public void setTotalMethods(int totalMethods) {
         this.totalMethods = totalMethods;
     }
 
@@ -109,7 +109,7 @@ public class DaySummary {
         return missMethods;
     }
 
-    private void setMissMethods(int missMethods) {
+    public void setMissMethods(int missMethods) {
         this.missMethods = missMethods;
     }
 
@@ -117,7 +117,7 @@ public class DaySummary {
         return totalClasses;
     }
 
-    private void setTotalClasses(int totalClasses) {
+    public void setTotalClasses(int totalClasses) {
         this.totalClasses = totalClasses;
     }
 
@@ -125,7 +125,7 @@ public class DaySummary {
         return missClasses;
     }
 
-    private void setMissClasses(int missClasses) {
+    public void setMissClasses(int missClasses) {
         this.missClasses = missClasses;
     }
 
