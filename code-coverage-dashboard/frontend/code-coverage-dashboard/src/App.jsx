@@ -14,30 +14,21 @@
  * limitations under the License.
  */
 
-package org.wso2.codecoverageservice.utils;
+import React, { Component } from 'react';
+import './App.css';
+import CodeCoverageChart from './components/CodeCoverageChart';
+import CodeCoverageTable from './components/CodeCoverageTable';
 
-import javax.sql.DataSource;
+class App extends Component {
+  render() {
+    return (
+      <React.Fragment>
+        <CodeCoverageChart />
+        <CodeCoverageTable />
+      </React.Fragment>
 
-/**
- * This class holding Data source object.
- */
-public class DataValueHolder {
-    private DataSource datasource;
-    private static DataValueHolder dataValueHolder =  new DataValueHolder();
-
-    private DataValueHolder() {
-
-    }
-
-    public static DataValueHolder getInstance() {
-        return dataValueHolder;
-    }
-
-    public void setDataSource(DataSource datasource) {
-        this.datasource = datasource;
-    }
-
-    public DataSource getDataSource() {
-        return datasource;
-    }
+    );
+  }
 }
+
+export default App;

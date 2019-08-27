@@ -1,0 +1,11 @@
+.App {
+  text-align: center;
+  color: #3f51b5;
+  padding: 30px;
+  margin-top: 0rem;
+}
+
+body {
+  font-family: 'Titillium Web', sans-serif;
+  /* background: rgb(229, 235, 241); */
+}
