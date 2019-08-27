@@ -60,5 +60,6 @@ final string JIRA_EI="EIINTERNAL";
 final string JIRA_OB="OBINTERNAL";
 
 # Reference Links
-final string CODE_COVERAGE_DASHBOARD_URL = "/portal/dashboards/codecoverage/home";
-final string GIT_ISSUE_DASHBOARD_URL = "/portal/dashboards/gitissuedashboard/home";
+final string CODE_COVERAGE_DASHBOARD_URL = config:getAsString("CODE_COVERAGE_DASHBOARD_URL");
+final string GIT_ISSUE_DASHBOARD_URL = config:getAsString("GIT_ISSUE_DASHBOARD_URL");
+
