@@ -13,8 +13,6 @@ This will work as the backend to the Code Coverage Dashboard which retrieve the 
   USERNAME = "root"
   PASSWORD = "root"
 
- SERVER_URL = ""http://localhost:3000"
-"
 ```
 
 - Navigate to engineering-mgt/code-coverage-dashboard/backend/src and first issue `ballerina init`
