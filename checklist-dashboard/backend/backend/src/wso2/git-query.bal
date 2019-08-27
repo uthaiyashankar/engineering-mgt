@@ -18,8 +18,9 @@ import ballerina/http;
 
 http:Client gitGraphQLEP = new(GIT_GRAPHQL_API);
 
-//when we pass the required  this query willretirve the total open issue count for given milestone and given lables
-public string QUERY_ISSUES = string `
+//when we pass the required  this query will retrieve the total open issue count for given milestone and given lables
+
+string QUERY_ISSUES = string `
 query {
   repository(owner: "<OWNER>", name: "<REPONAME>") {
     milestone(number: <MILESTONENUMBER>) {

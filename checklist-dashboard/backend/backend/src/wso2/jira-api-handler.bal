@@ -27,12 +27,17 @@ function getIssueMetaDetails(string productName, string labels) returns (json) {
     string reqURL = "/jira/rest/api/2/search";
 
     string product = mapToProductJiraProject(productName);
+    log:printError(product);
+    log:printError(labels);
+
+
     json|error totalIssueCountJson = getTotalIssueCount(reqURL, product, labels, req);
     json|error openIssueCountJson = getOpenIssueCount(reqURL, product, labels, req);
 
     json issuesMetaDetails = {
         totalIssues: 0,
-        openIssues: 0
+        openIssues: 0,
+        refLink: ""
     };
 
     if (totalIssueCountJson is json && openIssueCountJson is json) {
@@ -58,7 +63,7 @@ function getTotalIssueCount(string path, string product, string labels, http:Req
     json issuesMetaDetails = [];
 
     // prepare jql
-    string jql = "project=" + product + " and labels in (" + labels + ")";
+    string jql = "product=" + product + " and labels in (" + labels + ")";
 
 
     // creating array of query parameters key & values

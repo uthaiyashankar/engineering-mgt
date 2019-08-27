@@ -17,7 +17,10 @@
 listener http:Listener httpListener = new(6095);
 
 @http:ServiceConfig {
-    basePath: "/checklist"
+    basePath: "/checklist",
+    cors: {
+            allowOrigins: ["*"]
+        }
 }
 service jiraIssueService on httpListener {
     // Resource that handles the HTTP GET requests that are directed to a specific endpoint

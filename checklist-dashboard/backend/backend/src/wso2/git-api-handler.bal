@@ -19,15 +19,15 @@ import ballerina/log;
 import ballerina/io;
 import ballerina/mime;
 
-http:Client gitClientEP = new(GIT_REST_API);
+http:Client gitClientEP = new(GIT_REST_API, config = {
+           followRedirects: { enabled: true, maxCount: 5 }
+           });
 
 function getProductVersions(string productName) returns (json) {
     http:Request req = new;
     req.addHeader("Authorization", "token " + GITHUB_AUTH_KEY);
     json versions = [];
-
     string productRepo = mapProductToRepo(productName);
-
     string reqURL = "/repos" + "/" + GIT_REPO_OWNER + "/" + productRepo + "/milestones?state=active";
     json|error productMilestones = getProductMilestones(reqURL, req);
 
@@ -47,10 +47,10 @@ function getProductMilestones(string path, http:Request req) returns (json|error
     var response = gitClientEP->get(path, message = req);
 
     if (response is http:Response) {
+        string status = <string>response.getHeader("Status").split(" ")[0];
         respJson = check response.getJsonPayload();
-
         int i = 0;
-        if (respJson.length() > 0)
+        if (status != "404")
         {
             while (i < respJson.length()) {
                 milestonesArray[i] = {};
@@ -134,6 +134,9 @@ function mapProductToRepo(string product) returns (string) {
         repo = "financial-open-banking";
     } else if (product.equalsIgnoreCase("Cloud")) {
         repo = "cloud";
+    }
+    else {
+     repo = product;
     }
     return repo;
 }

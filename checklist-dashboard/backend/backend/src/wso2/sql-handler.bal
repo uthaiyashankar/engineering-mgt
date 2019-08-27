@@ -63,8 +63,9 @@ function getPendingDocTasks(string product, string milestone) returns (json) {
         json response = {};
 
         // Set the reference link
-        string stringUrl = string `/portal/dashboards/mergedprsummarydashboard/home`
-            + string `#{"product":"{{product}}","version":"{{milestone}}"}`;
+        string stringUrl = string `https://identity-internal-gateway.cloud.wso2.com/t/wso2internal928/mprdash`
+    + string `?product={{product}}&,version={{milestone}}`;
+
 
         var count = json.convert(prCount);
 
@@ -258,6 +259,9 @@ function mapJiraProjectToProduct(string project) returns (string) {
     } else if (project.equalsIgnoreCase("CLOUDINTERNAL")) {
         product = "Cloud";
     }
+    else {
+         product = project;
+    }
     return product;
 }
 
@@ -276,6 +280,9 @@ function mapToProductJiraProject(string product) returns (string) {
         project = JIRA_OB;
     } else if (product.equalsIgnoreCase("Cloud")) {
         project = "CLOUDINTERNAL";
+    }
+    else {
+         project = product;
     }
     return project;
 }
