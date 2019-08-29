@@ -114,3 +114,17 @@ function handleUpdate(int|error returned, string message) {
 }
 
 
+function getAllGitIssueCount() returns (json) {
+    var gitIssueCount = productRepoTable->select("SELECT * FROM GIT_ISSUE_COUNT", ());
+    if (gitIssueCount is table< record {} >) {
+        var gitIssueCountJson = json.convert(gitIssueCount);
+        if (gitIssueCountJson is json) {
+            return gitIssueCountJson;
+        } else {
+            log:printError("Error occured while converting the retreaved git issue count to json", err = gitIssueCountJson)
+            ;
+        }
+    } else {
+        log:printError("Error occured while retreaving the  git issue count from Database", err = gitIssueCount);
+    }
+}

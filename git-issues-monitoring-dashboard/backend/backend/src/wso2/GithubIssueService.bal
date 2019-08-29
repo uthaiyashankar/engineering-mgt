@@ -29,7 +29,10 @@ string TRIGGER_AUTH_KEY = config:getAsString("TRIGGER_AUTH_KEY");
 string GENERAL_AUTH_KEY = config:getAsString("GENERAL_AUTH_KEY");
 
 @http:ServiceConfig {
-    basePath: "/gitIssues"
+    basePath: "/gitIssues",
+    cors : {
+        allowOrigins: ["*"]
+    }
 }
 service githubIssueService on httpListener {
     // Resource that handles the HTTP GET requests that are directed to a specific
@@ -89,12 +92,13 @@ service githubIssueService on httpListener {
         }
     }
 
-    @http:ResourceConfig {
+     @http:ResourceConfig {
         methods: ["GET"],
-        path: "/repository/label"
+        path: "/repository/label/"
     }
     resource function retreaveIssuesFromRepoByLabel(http:Caller caller, http:Request request) {
         http:Response response = new;
+        
         string labelFilter = "";
         json|error labelsJson = "";
         json issuesJson = [];
@@ -102,11 +106,16 @@ service githubIssueService on httpListener {
         int readArrayIndex = 0;
         json[] partialIssueJson = [];
         json[] allRepodetails = [];
-
+        io:println(request.getQueryParams());
         map<string> filterValues = request.getQueryParams();
         string? labelsString = filterValues["labels"];
         string? repoNames = filterValues["repos"];
 
+        io:println("labelsString",labelsString);
+        io:println("repoNames",labelsString);
+
+        
+        io:println(request.getQueryParams());
         if labelsString is string{
             labelsJson = internal:parseJson(labelsString);
             if (labelsJson is json) {
@@ -135,6 +144,9 @@ service githubIssueService on httpListener {
                             repoNamesIterator]);
                         allRepodetails[repoNamesIterator] = repoDetails[0];
                         repoNamesIterator = repoNamesIterator + 1;
+                        io:println("repoNamesIterator",repoNamesIterator);
+                        io:println("repoDetails",repoDetails);
+
                     }
 
                     while (readArrayIndex < allRepodetails.length()) {
@@ -145,6 +157,8 @@ service githubIssueService on httpListener {
                         foreach var item in intermediantIssueJson {
                             issuesJson[issuesJson.length()] = item;
                         }
+                         io:println("intermediantIssueJson",intermediantIssueJson);
+                        //io:println("intermediantIssueJson",repoDetails);
                     }
                 }
             } else if (repoNamesJson is error){
@@ -183,15 +197,15 @@ service githubIssueService on httpListener {
 
     @http:ResourceConfig {
         methods: ["GET"],
-        path: "/repos/"
+        path: "/repos/{productName}"
     }
-    resource function getAllRepos(http:Caller caller, http:Request request) {
+    resource function getAllRepos(http:Caller caller, http:Request request,string productName) {
         http:Response response = new;
         json[] repoNames = [];
-        map<string> filterValues = request.getQueryParams();
-        string? productName = filterValues["product"];
+        // map<string> filterValues = request.getQueryParams();
+        // string? productName = filterValues["product"];
 
-        if productName is string{
+        
             if productName != "all"{
                 int repoIterator = 0;
                 json repoDetails = retreaveRepositoriesFromDatabase(untaint productName);
@@ -215,7 +229,7 @@ service githubIssueService on httpListener {
                     productNamesIterator = productNamesIterator + 1;
                 }
             }
-        }
+        
         response.setJsonPayload(untaint repoNames);
         var result = caller->respond(response);
         if (result is error) {
@@ -247,7 +261,27 @@ service githubIssueService on httpListener {
         }
 
     }
+
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/issueCount"
+    }
+    resource function getIssueCount (http:Caller httpCaller, http:Request request) {
+        // Initialize an empty http response message
+        http:Response response = new;
+        // Invoke retrieveData function to retrieve data from mysql database
+        var allGitIssueCount = getAllGitIssueCount();
+        // Send the response back to the client with the git issue data
+        response.setPayload(untaint allGitIssueCount);
+        var respondRet = httpCaller->respond(response);
+        if (respondRet is error) {
+            // Log the error for the service maintainers.
+            log:printError("Error responding to the client", err = respondRet);
+        }
+    }
 }
+
+
 
 function triggerRetreaveIssueCount() returns json|error? {
     json productNames = getAllProductNames();
@@ -318,7 +352,7 @@ public function main() {
     function (error) onErrorFunction = cleanupError;
 
     timer = new task:Timer(onTriggerFunction, onErrorFunction, 3600000,
-        delay = 3600000);
+        delay = 36000);
 
     timer.start();
 }
