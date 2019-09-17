@@ -48,11 +48,11 @@ const styles = {
             tableCell: {
                 backgroundColor: '#3f51b5',
                 color: 'white',
-                fontWeight: 500
+                fontWeight: 500,
+                fontSize: '16px'
             }
         },
         TableHead: {
-            textDecoration: 'uppercase',
             TableRow: {
                 display: 'block'
             }
@@ -160,10 +160,7 @@ class CodeCoverageTable extends Component {
 
     getTableSummary(date) {
         fetch(
-            'http://' +
-            process.env.REACT_APP_HOST +
-            ':9999/code_coverage/summary/' +
-            date
+            'http://' + process.env.REACT_APP_HOST + ':' + process.env.REACT_APP_PORT + '/code_coverage/summary/' + date
         )
             .then(res => res.json())
             .then(
@@ -187,7 +184,7 @@ class CodeCoverageTable extends Component {
         fetch(
             'http://' +
             process.env.REACT_APP_HOST +
-            ':9999/code_coverage/last-report-date'
+           ':' + process.env.REACT_APP_PORT + '/code_coverage/last-report-date'
         )
             .then(res => res.json())
             .then(
@@ -285,49 +282,49 @@ class CodeCoverageTable extends Component {
                                     align="center"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    PRODUCT
+                                    Product
                 </TableCell>
                                 <TableCell
                                     align="center"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    BUILDS
+                                    Builds
                 </TableCell>
                                 <TableCell
                                     align="right"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    INSTRUCTIONS (%)
+                                    Instructions (%)
                 </TableCell>
                                 <TableCell
                                     align="right"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    BRANCHES (%)
+                                    Branches (%)
                 </TableCell>
                                 <TableCell
                                     align="right"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    COMPLEXITY (%)
+                                    Complexity (%)
                 </TableCell>
                                 <TableCell
                                     align="right"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    LINES (%)
+                                    Lines (%)
                 </TableCell>
                                 <TableCell
                                     align="right"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    METHODS (%)
+                                    Methods (%)
                 </TableCell>
                                 <TableCell
                                     align="right"
                                     style={styles.table.tableHead.tableCell}
                                 >
-                                    CLASSES (%)
+                                    Classes (%)
                 </TableCell>
                             </TableRow>
                         </TableHead>

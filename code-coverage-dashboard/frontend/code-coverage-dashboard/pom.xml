@@ -116,7 +116,7 @@
 
                         <configuration>
                             <environmentVariables>
-                                 <PUBLIC_URL>http://10.100.1.197:9763/${project.artifactId}</PUBLIC_URL>
+                                 <PUBLIC_URL>http://localhost:9763/${project.artifactId}</PUBLIC_URL>
                                 <REACT_APP_ROUTER_BASE>/${project.artifactId}</REACT_APP_ROUTER_BASE>
                             </environmentVariables>
                         </configuration>
