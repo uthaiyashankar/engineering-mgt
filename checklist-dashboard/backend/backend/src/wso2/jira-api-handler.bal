@@ -35,8 +35,8 @@ function getIssueMetaDetails(string productName, string labels) returns (json) {
     json|error openIssueCountJson = getOpenIssueCount(reqURL, product, labels, req);
 
     json issuesMetaDetails = {
-        totalIssues: 0,
-        openIssues: 0,
+        totalIssues: "",
+        openIssues: "",
         refLink: ""
     };
 
@@ -63,7 +63,7 @@ function getTotalIssueCount(string path, string product, string labels, http:Req
     json issuesMetaDetails = [];
 
     // prepare jql
-    string jql = "product=" + product + " and labels in (" + labels + ")";
+    string jql = "project=" + product + " and labels in (" + labels + ")";
 
 
     // creating array of query parameters key & values
@@ -146,5 +146,6 @@ function prepareQueryUrl(string paths, string[] queryParamNames, string[] queryP
         }
         i = i + 1;
     }
+    log:printInfo(url);
     return url;
 }

@@ -317,7 +317,7 @@ export default class Checklist extends Component {
                                         jiraSecScanLoading: false
                                     },
                                         function () {
-                                            if (typeof this.state.jiraSecScan.openIssues === 'undefined' && typeof this.state.jiraSecScan.totalIssues === 'undefined') {
+                                            if (this.state.jiraSecScan.openIssues === '' && this.state.jiraSecScan.totalIssues === '') {
                                                 return
                                             }
                                             if (this.state.jiraSecScan.openIssues > 0) {
@@ -359,7 +359,7 @@ export default class Checklist extends Component {
                                         jiraPerfLoading: false
                                     },
                                         function () {
-                                            if (typeof this.state.jiraPerf.openIssues === 'undefined' && typeof this.state.jiraPerf.totalIssues === 'undefined') {
+                                            if (this.state.jiraPerf.openIssues === '' && this.state.jiraPerf.totalIssues === '') {
                                                 return
                                             }
                                             else if (this.state.jiraPerf.openIssues > 0) {
@@ -403,7 +403,7 @@ export default class Checklist extends Component {
                                         jiraCommitmentLoading: false
                                     },
                                         function () {
-                                            if (typeof this.state.jiraCommitment.openIssues === 'undefined' && typeof this.state.jiraCommitment.totalIssues === 'undefined') {
+                                            if (this.state.jiraCommitment.openIssues === '' && this.state.jiraCommitment.totalIssues === '') {
                                                 return
                                             }
                                             if (this.state.jiraCommitment.openIssues > 0) {
@@ -446,7 +446,7 @@ export default class Checklist extends Component {
                                         jiraSecCustLoading: false
                                     },
                                         function () {
-                                            if (typeof this.state.jiraSecCust.openIssues === 'undefined' && typeof this.state.jiraSecCust.totalIssues === 'undefined') {
+                                            if (this.state.jiraSecCust.openIssues === '' && this.state.jiraSecCust.totalIssues === '') {
                                                 return
                                             }
                                             if (this.state.jiraSecCust.openIssues > 0) {
@@ -489,7 +489,7 @@ export default class Checklist extends Component {
                                         jiraSecExtLoading: false
                                     },
                                         function () {
-                                            if (typeof this.state.jiraSecExt.openIssues === 'undefined' && typeof this.state.jiraSecExt.totalIssues === 'undefined') {
+                                            if (this.state.jiraSecExt.openIssues === '' && this.state.jiraSecExt.totalIssues === '') {
                                                 return
                                             }
                                             if (this.state.jiraSecExt.openIssues > 0) {
@@ -531,7 +531,7 @@ export default class Checklist extends Component {
                                         jiraSecIntLoading: false
                                     },
                                         function () {
-                                            if (typeof this.state.jiraSecInt.openIssues === 'undefined' && typeof this.state.jiraSecInt.totalIssues === 'undefined') {
+                                            if (this.state.jiraSecInt.openIssues === '' && this.state.jiraSecInt.totalIssues === '') {
                                                 return
                                             }
                                             if (this.state.jiraSecInt.openIssues > 0) {
@@ -590,14 +590,14 @@ export default class Checklist extends Component {
                                     this.setState({
                                         gitIssueL1Status: {
                                             status: styles.RED,
-                                            desc: 'RED : Number of L1 issues is greater than 0'
+                                            desc: 'RED : Number of Severity/Blocker issues is greater than 0'
                                         }
                                     });
                                 } else {
                                     this.setState({
                                         gitIssueL1Status: {
                                             status: styles.GREEN,
-                                            desc: 'GREEN : No L1 issues open'
+                                            desc: 'GREEN : No Severity/Blocker issues open'
 
                                         }
                                     });
@@ -614,21 +614,21 @@ export default class Checklist extends Component {
                                     this.setState({
                                         gitIssueL2Status: {
                                             status: styles.YELLOW,
-                                            desc: 'YELLOW : Number of L2 issues is greater than 0 and less than or equal to 5'
+                                            desc: 'YELLOW : Number of Severity/Critical issues is greater than 0 and less than or equal to 5'
                                         }
                                     });
                                 } else if (this.state.gitIssues.L2Issues > 5) {
                                     this.setState({
                                         gitIssueL2Status: {
                                             status: styles.RED,
-                                            desc: 'RED : Number of L2 issues is greater than 5'
+                                            desc: 'RED : Number of Severity/Critical issues is greater than 5'
                                         }
                                     });
                                 } else {
                                     this.setState({
                                         gitIssueL2Status: {
                                             status: styles.GREEN,
-                                            desc: 'GREEN : No L2 issues open'
+                                            desc: 'GREEN : No Severity/Critical issues open'
                                         }
                                     });
                                 }
@@ -644,14 +644,14 @@ export default class Checklist extends Component {
                                     this.setState({
                                         gitIssueL3Status: {
                                             status: styles.YELLOW,
-                                            desc: 'YELLOW : No of L3 issues is greater than 50'
+                                            desc: 'YELLOW : No of Severity/Major issues is greater than 50'
                                         }
                                     });
                                 } else {
                                     this.setState({
                                         gitIssueL3Status: {
                                             status: styles.GREEN,
-                                            desc: 'GREEN : No of L3 issues is less than or equal to 50'
+                                            desc: 'GREEN : No of Severity/Major issues is less than or equal to 50'
                                         }
                                     })
                                 }
@@ -1007,9 +1007,9 @@ export default class Checklist extends Component {
                                 </TableCell>
                                 <TableCell style={styles.table.tableBody.tableCell}>
                                     <Tooltip
-                                        title="Number of L1 issues"
+                                        title="Number of Severity/Blocker issues"
                                         placement="top">
-                                        <p> L1 Issues </p>
+                                        <p> Severity/Blocker Issues </p>
                                     </Tooltip>
                                 </TableCell>
                                 <TableCell style={styles.table.tableBody.progressCell}>
@@ -1028,9 +1028,9 @@ export default class Checklist extends Component {
                                 </TableCell>
                                 <TableCell style={styles.table.tableBody.tableCell}>
                                     <Tooltip
-                                        title="Number of L2 issues"
+                                        title="Number of Severity/Critical issues"
                                         placement="top">
-                                        <p> L2 Issues </p>
+                                        <p> Severity/Critical Issues </p>
                                     </Tooltip>
                                 </TableCell>
                                 <TableCell style={styles.table.tableBody.progressCell}>
@@ -1049,9 +1049,9 @@ export default class Checklist extends Component {
                                 </TableCell>
                                 <TableCell style={styles.table.tableBody.tableCell}>
                                     <Tooltip
-                                        title="Number of L3 issues"
+                                        title="Number of Severity/Major issues"
                                         placement="top">
-                                        <p> L3 Issues </p>
+                                        <p> Severity/Major Issues </p>
                                     </Tooltip>
                                 </TableCell>
                                 <TableCell style={styles.table.tableBody.progressCell}>
