@@ -42,6 +42,12 @@ const DivBoarder = {
 
 };
 
+const labelStyles = {
+    textTransform: "capitalize",
+    fontWeight: 500,
+    fontSize: '16px'
+};
+
 class CodeCoverage extends Component {
     constructor(props) {
         super(props);
@@ -57,7 +63,7 @@ class CodeCoverage extends Component {
     }
     componentDidMount() {
         fetch(
-            'http://' + process.env.REACT_APP_HOST + ':9999/code_coverage/summary'
+            'http://' + process.env.REACT_APP_HOST + ':' + process.env.REACT_APP_PORT + '/code_coverage/summary'
         )
             .then(res => res.json())
             .then(
@@ -97,16 +103,16 @@ class CodeCoverage extends Component {
                             indicatorColor="primary"
                             textColor="primary"
                         >
-                            <Tab label="Instruction Coverage" />
-                            <Tab label="Branch Coverage" />
-                            <Tab label="Complexity Coverage" />
-                            <Tab label="Line Coverage" />
-                            <Tab label="Method Coverage" />
-                            <Tab label="Class Coverage" />
+                            <Tab label="Instruction Coverage" style={labelStyles}/>
+                            <Tab label="Branch Coverage" style={labelStyles}/>
+                            <Tab label="Complexity Coverage" style={labelStyles}/>
+                            <Tab label="Line Coverage" style={labelStyles}/>
+                            <Tab label="Method Coverage" style={labelStyles}/>
+                            <Tab label="Class Coverage" style={labelStyles}/>
                         </Tabs>
                     </AppBar>
                     <TabContainer>
-                        <LineChart data={chartData[value]} colors={["#B80000", "#2E7442", "#FF6900", "#7B1FA2"]} curve={false} library={{
+                        <LineChart max={100} suffix="%" data={chartData[value]} colors={["#B80000", "#2E7442", "#FF6900", "#7B1FA2"]} curve={false} library={{
                             legend: {
                                 labels: {
                                     fontColor: "#3f51b5"

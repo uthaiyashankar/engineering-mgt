@@ -320,8 +320,28 @@ export default class MPRSummary extends Component {
         window.open(redirectUrl);
     }
 
+    getQueryVariable = (variable) => {
+            var query = window.location.search.substring(1);
+            var vars = query.split('&');
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split('=');
+                if (decodeURIComponent(pair[0]) === variable) {
+                    console.log(decodeURIComponent(pair[1]));
+                    console.log(variable);
+                    return decodeURIComponent(pair[1]);
+                }
+            }
+            //console.log('Query variable %s not found', variable);
+     };
+
     componentDidMount() {
         this.loadProducts();
+        if (window.location.search.indexOf("?") !== -1) {
+            this.setState({
+                selectedProduct: this.getQueryVariable("product"),
+                selectedVersion: this.getQueryVariable("version"),
+                }, this.onSubmit);
+        }
     }
 
 

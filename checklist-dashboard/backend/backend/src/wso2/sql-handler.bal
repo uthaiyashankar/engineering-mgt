@@ -61,10 +61,9 @@ function getPendingDocTasks(string product, string milestone) returns (json) {
     var prCount = dashboardDB->select(sqlQuery, (), product, milestone);
     if (prCount is table< record {} >) {
         json response = {};
-
         // Set the reference link
-        string stringUrl = string `https://identity-internal-gateway.cloud.wso2.com/t/wso2internal928/mprdash`
-    + string `?product={{product}}&,version={{milestone}}`;
+        string stringUrl = "http://192.168.8.31:9763/mprDashboard?"
+                 +"product=" + product + "&version=" + milestone;
 
 
         var count = json.convert(prCount);
@@ -93,9 +92,8 @@ function getDependencySummary(string product) returns (json) {
             PRODUCT_REPOS.REPO_ID = DEPENDENCY_SUMMARY.REPO_ID;";
     var summary = dashboardDB->select(sqlQuery, (), product);
 
-    // Set the reference link
-    string stringUrl = string `/portal/dashboards/dependencydashboard/home`
-        + string `#{"org":"{{GIT_REPO_OWNER}}","product":"{{product}}"}`;
+    string stringUrl = "http://192.168.8.31:9763/mprDashboard?" + "org=" + GIT_REPO_OWNER
+                     +"product=" + product;
 
     if (summary is table< record {} >) {
         var count = json.convert(summary);
