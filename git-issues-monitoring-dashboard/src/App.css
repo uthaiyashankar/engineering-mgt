@@ -1,0 +1,90 @@
+
+/*
+ *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the 'License'); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ *
+ */
+
+
+.rowC {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+}
+
+table.MuiTable-root {
+  width: 100%;
+  
+}
+.MuiPaper-rounded {
+  border-radius: 4px;
+  box-shadow: 0 0 black;
+}
+.MuiPaper-root.MuiPaper-elevation1.MuiPaper-rounded {
+  box-shadow: 0px;
+}
+.heading {
+  font-size: 40px !important;
+  background: white;
+  font-weight: bolder;
+  padding-bottom: 2px;
+}
+.MuiPaper-root.MuiPaper-elevation1.MuiPaper-rounded {
+  box-shadow: 0px;
+  box-shadow: none;
+}
+td.MuiTableCell-root.MuiTableCell-alignLeft.MuiTableCell-body {
+  padding: 2%;
+  
+}
+.MuiToolbar-root.MuiToolbar-regular.MTableToolbar-root-60.MuiToolbar-gutters {
+    min-height: 0px;
+}
+
+.MuiGrid-grid-lg-6 {
+    display: inline-block;
+}
+
+.MuiToolbar-root.MuiToolbar-regular.MTableToolbar-root-170.MuiToolbar-gutters {
+    min-height: 0px;
+}
+
+.MTableHeader-header-182.MuiTableCell-alignLeft.MuiTableCell-head {
+  padding: 10px;
+}
+.MuiToolbar-root.MuiToolbar-regular.MuiTablePagination-toolbar.Component-paginationToolbar-140.MuiToolbar-gutters {
+  min-height: 1px;
+  
+}
+.MuiPaper-root.MuiPaper-elevation1.MuiPaper-rounded {
+  box-shadow: 0px;
+  box-shadow: none;
+  padding: 20px;
+}
+.chartjs-render-monitor{
+  height: 300px;
+
+}
+.MuiContainer-root {
+  padding-left: 1px !important;
+  padding-right: 1px !important;
+}
+.MuiToolbar-root.MuiToolbar-regular.jss170.MuiToolbar-gutters {
+  min-height: 0px;
+}
+th.MuiTableCell-root.jss182.MuiTableCell-alignLeft.MuiTableCell-head{
+  padding: 2%;
+}
