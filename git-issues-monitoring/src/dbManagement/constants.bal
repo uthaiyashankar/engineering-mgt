@@ -32,6 +32,7 @@ string GET_ORG_NAME = "SELECT ORG_NAME FROM ENGAPP_GITHUB_ORGANIZATIONS WHERE OR
 string ISSUE_EXISTS = "SELECT * FROM ENGAPP_GITHUB_ISSUES WHERE GITHUB_ID=?";
 
 string AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
+string GITHUB_API = config:getAsString("GITHUB_API");
 
-//Fire at 12:01am every day
-string CRON_EXPRESSION = "0 01 12 * * ?";
+//Cron expression to update database periodically
+string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION");

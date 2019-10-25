@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/time;
+import ballerina/config;
 
 string UPDATED_TIME = time:toString(time:currentTime());
 string UPDATED_DATE = UPDATED_TIME.substring(0,10);
@@ -26,5 +27,5 @@ string RETRIEVE_ISSUES = "SELECT CAST(UPDATED_DATE AS DATE) AS UPDATED_DATE, CRE
         CAST(CREATED_DATE AS DATE)) AS OPEN_DAYS ,LABELS FROM ENGAPP_GITHUB_ISSUES WHERE REPOSITORY_ID=? AND
         ISSUE_TYPE=\"PR\" AND CLOSED_DATE IS NULL";
 
-//Fire at 12:01am every wednesday
-string CRON_EXPRESSION = "0 01 12 3 WED";
+//Cron expression to mail open prs update
+string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION");

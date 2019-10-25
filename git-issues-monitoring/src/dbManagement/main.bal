@@ -65,8 +65,7 @@ function updateReposTable() {
            json[] orgRepos = [];
            boolean isEmpty = false;
            while(!isEmpty) {
-               string reqURL = "/users/" + organization.ORG_NAME.toString() + "/repos?&page=" + pageIterator.toString()
-                + "&per_page=100";
+               string reqURL = "/users/" + organization.ORG_NAME.toString() + "/repos?&page=" + pageIterator.toString() + "&per_page=100";
                var response = gitClientEP->get(reqURL, message = req);
                if (response is http:Response) {
                    int statusCode = response.statusCode;
@@ -83,7 +82,8 @@ function updateReposTable() {
                            }
                        }
                    } else {
-                         log:printError("Error when calling the github API: " + response.getJsonPayload().toString());
+                         log:printError("Error when calling the github API. StatusCode for the request is "+
+                            statusCode.toString() + ". " + response.getJsonPayload().toString());
                      }
                } else {
                    log:printError("Error when calling the backend : "+ response.detail().toString());
@@ -122,8 +122,7 @@ function updateIssuesTable() {
                         boolean isEmpty = false;
                         while(!isEmpty) {
 	                        string reqURL = "/repos/" + organization.ORG_NAME.toString() + "/" +
-	                        uuid.REPOSITORY_NAME.toString() + "/issues?since=" + <@untainted>lastUpdated +
-	                         "&state=all&page=" + pageIterator.toString() + "&per_page=100";
+	                        uuid.REPOSITORY_NAME.toString() + "/issues?since=" + <@untainted>lastUpdated + "&state=all&page=" + pageIterator.toString() + "&per_page=100";
 	                        var response = gitClientEP->get(reqURL, message = req);
 	                        if (response is http:Response) {
 	                            int statusCode = response.statusCode;
@@ -139,8 +138,8 @@ function updateIssuesTable() {
 	                                    }
                                     }
 	                            } else {
-	                                log:printError("Error when calling the github API: " +
-	                                response.getJsonPayload().toString());
+	                                log:printError("Error when calling the github API. StatusCode for the request is "+
+	                                    statusCode.toString() + ". " + response.getJsonPayload().toString());
 	                            }
 	                        } else {
 	                            log:printError("Error when calling backend : "+ response.detail().toString());
@@ -200,8 +199,8 @@ function getAllIssues() {
 	                            }
 	                        }
 	                    } else {
-	                          log:printError("Error when calling the github API: " +
-	                          response.getJsonPayload().toString());
+	                          log:printError("Error when calling the github API. StatusCode for the request is "+
+	                                    statusCode.toString() + ". " + response.getJsonPayload().toString());
 	                      }
 	                } else {
 	                    log:printError("Error when calling the backend : "+ response.detail().toString());
