@@ -1,3 +1,19 @@
+//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import ballerina/config;
 //sql queries
 string RETRIEVE_ORGANIZATIONS = "SELECT * FROM ENGAPP_GITHUB_ORGANIZATIONS";
@@ -16,6 +32,7 @@ string GET_ORG_NAME = "SELECT ORG_NAME FROM ENGAPP_GITHUB_ORGANIZATIONS WHERE OR
 string ISSUE_EXISTS = "SELECT * FROM ENGAPP_GITHUB_ISSUES WHERE GITHUB_ID=?";
 
 string AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
+string GITHUB_API = config:getAsString("GITHUB_API");
 
-//Fire at 12:01am every day
-string CRON_EXPRESSION = "0 01 12 * * ?";
+//Cron expression to update database periodically
+string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION");

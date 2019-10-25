@@ -1,4 +1,21 @@
+//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import ballerina/time;
+import ballerina/config;
 
 string UPDATED_TIME = time:toString(time:currentTime());
 string UPDATED_DATE = UPDATED_TIME.substring(0,10);
@@ -10,5 +27,5 @@ string RETRIEVE_ISSUES = "SELECT CAST(UPDATED_DATE AS DATE) AS UPDATED_DATE, CRE
         CAST(CREATED_DATE AS DATE)) AS OPEN_DAYS ,LABELS FROM ENGAPP_GITHUB_ISSUES WHERE REPOSITORY_ID=? AND
         ISSUE_TYPE=\"PR\" AND CLOSED_DATE IS NULL";
 
-//Fire at 12:01am every wednesday
-string CRON_EXPRESSION = "0 01 12 3 WED";
+//Cron expression to mail open prs update
+string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION");
