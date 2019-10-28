@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/config;
-import wso2/gmail;
 import ballerina/log;
+import wso2/gmail;
 
 gmail:GmailConfiguration gmailConfig = {
     oauthClientConfig: {
@@ -35,15 +35,15 @@ string mail_template = htmlHeader + templateHeader + tableContent + dateContent 
 
 string userId = "me";
 gmail:MessageRequest messageRequest = {
-   recipient: config:getAsString("GMAIL_RECIPIENT"),
-   sender: config:getAsString("GMAIL_SENDER"),
-   cc: config:getAsString("GMAIL_CC"),
-   subject: "Open PR Analzer",
-   messageBody: mail_template,
-   contentType:gmail:TEXT_HTML
+    recipient: config:getAsString("GMAIL_RECIPIENT"),
+    sender: config:getAsString("GMAIL_SENDER"),
+    cc: config:getAsString("GMAIL_CC"),
+    subject: "Open PR Analzer",
+    messageBody: mail_template,
+    contentType: gmail:TEXT_HTML
 };
 
-gmail:Client gmailClient = new(gmailConfig);
+gmail:Client gmailClient = new (gmailConfig);
 string messageId = "";
 string threadId = "";
 

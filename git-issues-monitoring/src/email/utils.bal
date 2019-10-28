@@ -19,8 +19,8 @@
 import ballerina/log;
 
 public function generateContent(json[] data) returns string {
-     string tableData = "";
-     foreach var datum in data {
+    string tableData = "";
+    foreach var datum in data {
         tableData = tableData +
         "<tr><td align=\"center\">" + datum.teamName.toString() + "</td>" +
         "<td align=\"center\">" + datum.repoName.toString() + "</td>" +
@@ -38,10 +38,10 @@ public function generateTable() returns string {
     var teams = retrieveAllTeams();
     string summaryTable = "";
     string tableForTeam = "";
-    if(teams is json[]) {
+    if (teams is json[]) {
         int teamIterator = 0;
         foreach var team in teams {
-            int teamId = <int> team.TEAM_ID;
+            int teamId = <int>team.TEAM_ID;
             string teamName = team.TEAM_NAME.toString();
             var data = openPrsForTeam(teamId, teamName);
             if (data is json[]) {

@@ -35,4 +35,4 @@ string AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
 string GITHUB_API = config:getAsString("GITHUB_API");
 
 //Cron expression to update database periodically
-string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION");
+string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION_UPDATE");
