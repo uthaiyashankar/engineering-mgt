@@ -20,7 +20,7 @@ task:AppointmentConfiguration appointmentConfiguration = {
     appointmentDetails: CRON_EXPRESSION
 };
 
-listener task:Listener appointment = new(appointmentConfiguration);
+listener task:Listener appointment = new (appointmentConfiguration);
 
 service appointmentService on appointment {
     resource function onTrigger() {

@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/config;
-import ballerinax/java.jdbc;
 import ballerina/jsonutils;
 import ballerina/log;
+import ballerinax/java.jdbc;
 
 jdbc:Client githubDb = new ({
     url: "jdbc:mysql://localhost:3306/WSO2_ORGANIZATION_DETAILS",
@@ -60,15 +60,15 @@ function retrieveAllIssuesByRepoId(int repositoryId) returns json[]? {
 }
 
 //Retrieves the count of open PRs for each team
-function openPrsForTeam(int teamId, string teamName) returns json[]?{
+function openPrsForTeam(int teamId, string teamName) returns json[]? {
     var repositories = retrieveAllReposByTeam(teamId);
-    if(repositories is json[]) {
-        json[] issuesForTeams  = [];
+    if (repositories is json[]) {
+        json[] issuesForTeams = [];
         json[] prJson = [];
         foreach var repository in repositories {
             var prs = retrieveAllIssuesByRepoId(<int>repository.REPOSITORY_ID);
-            if(prs is json[]) {
-               foreach var pr in prs {
+            if (prs is json[]) {
+                foreach var pr in prs {
                     json prDetail = {
                         teamName: teamName,
                         repoName: repository.REPOSITORY_NAME.toString(),
@@ -88,6 +88,6 @@ function openPrsForTeam(int teamId, string teamName) returns json[]?{
         return <json[]>prJson;
     } else {
         log:printError("Returned value is not a json. Error occured while retrieving the repo details from Database",
-                err = repositories);
+        err = repositories);
     }
 }

@@ -120,7 +120,7 @@ string tableContent = generateTable();
 string dateContent = string `
                          <div id = "subhead">
                              Updated Time <br/>`
-                             + UPDATED_DATE + "</div><br/>";
++ UPDATED_DATE + "</div><br/>";
 
 string templateFooter = string `
     <div align = center>

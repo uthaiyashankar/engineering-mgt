@@ -14,11 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/time;
 import ballerina/config;
+import ballerina/time;
 
 string UPDATED_TIME = time:toString(time:currentTime());
-string UPDATED_DATE = UPDATED_TIME.substring(0,10);
+string UPDATED_DATE = UPDATED_TIME.substring(0, 10);
 
 // Sql Queries
 string RETRIEVE_TEAMS = "SELECT * FROM ENGAPP_GITHUB_TEAMS";
@@ -28,4 +28,4 @@ string RETRIEVE_ISSUES = "SELECT CAST(UPDATED_DATE AS DATE) AS UPDATED_DATE, CRE
         ISSUE_TYPE=\"PR\" AND CLOSED_DATE IS NULL";
 
 //Cron expression to mail open prs update
-string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION");
+string CRON_EXPRESSION = config:getAsString("CRON_EXPRESSION_EMAIL");
