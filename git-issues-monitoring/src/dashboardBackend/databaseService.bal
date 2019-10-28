@@ -27,6 +27,10 @@ jdbc:Client githubDb = new ({
     dbOptions: {useSSL: false}
 });
 
+type IssueCount record {
+    int count;
+};
+
 //Retrieves the team details from the database
 function retrieveAllTeams() returns json[]? {
     var teams = githubDb->select(RETRIEVE_TEAMS, ());
@@ -160,16 +164,28 @@ function getDetailsOfIssue() returns json[] {
 
 //Inserts the number of open and closed issue count every day
 function InsertIssueCountDetails() {
-    var openIssueCount = githubDb->select(RETRIEVE_OPEN_ISSUE_COUNT, ());
-    var closedIssueCount = githubDb->select(RETRIEVE_CLOSED_ISSUE_COUNT, ());
-    if (openIssueCount is table<record {}> && closedIssueCount is table<record {}>) {
-        json[] openIssueCountJson = <json[]>jsonutils:fromTable(openIssueCount);
-        json[] closedIssueCountJson = <json[]>jsonutils:fromTable(closedIssueCount);
-        var ret = githubDb->update(INSERT_ISSUE_COUNT, <int>openIssueCountJson[0].OPEN_ISSUES,
-        <int>closedIssueCountJson[0].CLOSED_ISSUES);
+    var openIssueCount = githubDb->select(RETRIEVE_OPEN_ISSUE_COUNT, IssueCount);
+    var closedIssueCount = githubDb->select(RETRIEVE_CLOSED_ISSUE_COUNT, IssueCount);
+    int openIssue = 0;
+    int closedIssue = 0;
+    if (openIssueCount is table<IssueCount>) {
+        foreach ( IssueCount issueCount in openIssueCount) {
+            openIssue = <int>issueCount.count;
+        }
     } else {
-        log:printError("Error occured while insering the issues count details for each day to the Database");
+        log:printError("Error occured while insering the open issues count details for each day to the Database",
+        err = openIssueCount);
     }
+    if (closedIssueCount is table<IssueCount>) {
+        foreach ( IssueCount issueCount in closedIssueCount) {
+            closedIssue = <int>issueCount.count;
+        }
+    } else {
+        log:printError("Error occured while insering the closed issues count details for each day to the Database",
+        err = closedIssueCount);
+    }
+    var ret = githubDb->update(INSERT_ISSUE_COUNT, openIssue, closedIssue);
+    handleUpdate(ret, "Inserted Issue count details with variable parameters");
 }
 
 //Retrieves the number of open and closed Issue counts details everyday
@@ -353,4 +369,14 @@ function openIssuesAgingForLabels() returns json[] {
     }
     return data;
 }
+
+function handleUpdate(jdbc:UpdateResult | jdbc:Error status, string message) {
+    if (status is jdbc:UpdateResult) {
+        log:printInfo(message);
+    }
+    else {
+        log:printError("Failed to update the tables: ", status);
+    }
+}
+
 
