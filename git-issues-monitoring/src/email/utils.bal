@@ -47,7 +47,9 @@ public function generateTable() returns string {
             if (data is json[]) {
                 summaryTable = summaryTable + "<tr><td>" + teamName + "</td><td align=\"center\">" + data.length().toString() + "</td></tr>";
                 string tableTitlediv = string `<div id = "title">` + teamName + "</div>";
-                tableForTeam = tableForTeam + tableTitlediv + tableHeading + generateContent(data) + "</table>";
+                if (data.length() != 0) {
+                    tableForTeam = tableForTeam + tableTitlediv + tableHeading + generateContent(data) + "</table>";
+                }
             } else {
                 log:printError("Error occured while retrieving the issue details from Database", data);
             }
