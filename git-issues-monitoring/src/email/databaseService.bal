@@ -37,9 +37,8 @@ function retrieveAllTeams() returns json[]? {
     }
 }
 
-//Retrieves the repo details from the database for given Team id
-function retrieveAllReposByTeam(int teamId) returns json[]? {
-    var repositories = githubDb->select(RETRIEVE_REPOS, (), teamId);
+function retrieveAllIssuesByTeam(int teamId) returns json[]? {
+    var repositories = githubDb->select(RETRIEVE_ISSUES_BY_TEAM, (), teamId);
     if (repositories is table<record {}>) {
         json repositoriesJson = jsonutils:fromTable(repositories);
         return <json[]>repositoriesJson;
@@ -48,46 +47,26 @@ function retrieveAllReposByTeam(int teamId) returns json[]? {
     }
 }
 
-//Retrieves the Issue details from the database for the given Repo id
-function retrieveAllIssuesByRepoId(int repositoryId) returns json[]? {
-    var issues = githubDb->select(RETRIEVE_ISSUES, (), repositoryId);
-    if (issues is table<record {}>) {
-        json issueJson = jsonutils:fromTable(issues);
-        return <json[]>issueJson;
-    } else {
-        log:printDebug("Error occured while retrieving the issues details from Database");
-    }
-}
-
 //Retrieves the count of open PRs for each team
 function openPrsForTeam(int teamId, string teamName) returns json[]? {
-    var repositories = retrieveAllReposByTeam(teamId);
-    if (repositories is json[]) {
-        json[] issuesForTeams = [];
-        json[] prJson = [];
-        foreach var repository in repositories {
-            var prs = retrieveAllIssuesByRepoId(<int>repository.REPOSITORY_ID);
-            if (prs is json[]) {
-                foreach var pr in prs {
-                    json prDetail = {
-                        teamName: teamName,
-                        repoName: repository.REPOSITORY_NAME.toString(),
-                        updatedDate: pr.UPDATED_DATE.toString(),
-                        createdBy: pr.CREATED_BY.toString(),
-                        url: pr.HTML_URL.toString(),
-                        openDays: pr.OPEN_DAYS.toString(),
-                        labels: pr.LABELS.toString()
-                    };
-                    prJson.push(prDetail);
-                }
-            } else {
-                log:printError("Returned value is not a json. Error occured while retrieving the issue details
-                        from Database", err = prs);
-            }
+    json[] prJson = [];
+    var prs = retrieveAllIssuesByTeam(teamId);
+    if (prs is json[]) {
+        foreach var pr in prs {
+            json prDetail = {
+                teamName: teamName,
+                repoName: pr.REPOSITORY_NAME.toString(),
+                updatedDate: pr.UPDATED_DATE.toString(),
+                createdBy: pr.CREATED_BY.toString(),
+                url: pr.HTML_URL.toString(),
+                openDays: pr.OPEN_DAYS.toString(),
+                labels: pr.LABELS.toString()
+            };
+            prJson.push(prDetail);
         }
-        return <json[]>prJson;
     } else {
-        log:printError("Returned value is not a json. Error occured while retrieving the repo details from Database",
-        err = repositories);
+        log:printError("Returned value is not a json. Error occured while retrieving the issue details
+                from Database", err = prs);
     }
+    return <json[]>prJson;
 }
