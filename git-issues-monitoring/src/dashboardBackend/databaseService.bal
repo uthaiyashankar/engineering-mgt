@@ -30,6 +30,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
+//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import ballerina/config;
 import ballerina/jsonutils;
 import ballerina/log;
@@ -138,30 +154,7 @@ function getDetailsOfIssue() returns json[] {
 
 
 //Inserts the number of open and closed issue count every day
-function InsertIssueCountDetails() {
-    var openIssueCount = githubDb->select(RETRIEVE_OPEN_ISSUE_COUNT, IssueCount);
-    var closedIssueCount = githubDb->select(RETRIEVE_CLOSED_ISSUE_COUNT, IssueCount);
-    int openIssue = 0;
-    int closedIssue = 0;
-    if (openIssueCount is table<IssueCount>) {
-        foreach ( IssueCount issueCount in openIssueCount) {
-            openIssue = <int>issueCount.count;
-        }
-    } else {
-        log:printError("Error occured while insering the open issues count details for each day to the Database",
-        err = openIssueCount);
-    }
-    if (closedIssueCount is table<IssueCount>) {
-        foreach ( IssueCount issueCount in closedIssueCount) {
-            closedIssue = <int>issueCount.count;
-        }
-    } else {
-        log:printError("Error occured while insering the closed issues count details for each day to the Database",
-        err = closedIssueCount);
-    }
-    var ret = githubDb->update(INSERT_ISSUE_COUNT, openIssue, closedIssue);
-    handleUpdate(ret, "Inserted Issue count details with variable parameters");
-}
+
 
 // Get the total issue count for each team
 function getCountOfIssue() returns json[] {
@@ -268,7 +261,7 @@ function openIssuesAgingForTeam() returns json[] {
             }
             json teamData = {
                 name: team_name,
-                data: [["1 Day", day], ["1 Week", week], ["1 Month", month], ["3 Months", month3],
+                data: [["Less than 1 Day", day], ["Less than 1 Week", week], ["Less than 1 Month", month], ["Less than 3 Months", month3],
                 ["Morethan 3 months", morethan]]
             };
             data.push(teamData);
