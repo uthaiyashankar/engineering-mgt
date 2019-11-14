@@ -73,10 +73,14 @@ export default class IssuesForlabelsChart extends Component {
                             field: 'name',
                             cellStyle: {
                                 backgroundColor: '#E1E7EF',
-                                color: 'black'
+                                color: 'black',
+                                fontSize:'12px',
+                                paddingLeft:'5%'
                             },
                             headerStyle: {
-                                backgroundColor: '#05376F'
+                                backgroundColor: '#05376F',
+                                paddingLeft:'5%',
+
                             }
                         },
                         {
@@ -84,10 +88,14 @@ export default class IssuesForlabelsChart extends Component {
                             field: 'totalIssueCount',
                             cellStyle: {
                                 backgroundColor: '#E1E7EF',
-                                color: 'black'
+                                color: 'black',
+                                textAlign:'right',
+                                paddingRight:'10%'
                             },
                             headerStyle: {
-                                backgroundColor: '#05376F'
+                                backgroundColor: '#05376F',
+                                textAlign:'right',
+                                paddingRight:'5%'
                             }
                         }
                     ]}

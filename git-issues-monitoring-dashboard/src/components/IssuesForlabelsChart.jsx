@@ -17,6 +17,9 @@
  *
  */
 
+
+
+
 import React, { Component } from 'react';
 import 'chart.js';
 import axios from 'axios';
@@ -44,7 +47,7 @@ export default class IssuesForlabelsChart extends Component {
             process.env.REACT_APP_HOST +
             ':' +
             process.env.REACT_APP_PORT +
-            '/gitIssues/issueCount';
+            '/gitIssues/issueCountBylabel';
         axios
             .create({
                 withCredentials: false
@@ -109,30 +112,12 @@ export default class IssuesForlabelsChart extends Component {
                         options={{
                             maintainAspectRatio: false,
                             responsive: true,
-                            animation: {
-                                duration: 1,
-                                onComplete: function () {
-                                    var chartInstance = this.chart,
-                                        ctx = chartInstance.ctx;
-                                    ctx.textAlign = 'center';
-                                    ctx.textBaseline = 'bottom';
-                                    this.data.datasets.forEach(function (dataset, i) {
-                                        var meta = chartInstance.controller.getDatasetMeta(i);
-                                        meta.data.forEach(function (bar, index) {
-                                            var data = dataset.data[index];
-                                            if (data !== 0) {
-                                                ctx.fillText(data, bar._model.x, bar._model.y - 0);
-                                            }
-                                        });
-                                    });
-                                }
-                            },
                             scales: {
                                 xAxes: [
                                     {
                                         display: true,
                                         ticks: {
-                                            fontColor: '#05376F',
+                                            fontColor: '#3f51b5',
                                             fontWeight: 'bold',
                                             fontFamily: 'sans-serif',
                                             beginAtZero: true
@@ -155,11 +140,10 @@ export default class IssuesForlabelsChart extends Component {
                                         },
                                         scaleLabel: {
                                             display: true,
-                                            labelString: 'Number of Issues',
-                                            fontWeight: 'bold',
+                                            labelString: 'No of Issues',
                                             fontFamily: 'sans-serif',
-                                            fontColor: '#3f51b5 ',
-                                            fontSize: '18'
+                                            fontColor:  '#3f51b5',
+                                            fontSize: '16'
                                         },
                                         fontColor: 'red'
                                     }

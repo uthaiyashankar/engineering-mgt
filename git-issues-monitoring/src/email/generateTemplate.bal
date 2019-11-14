@@ -66,18 +66,17 @@ string htmlHeader = string `
       #openprs tr{
         background-color: #dedede;
       }
-
-      #openprs tr:nth-child(even){background-color: #efefef;}
-
-      #openprs tr:hover {background-color: #ddd;}
-
+      #openprs tr:hover {background-color: #dedede;}
       #openprs th {
-        padding-top: 12px;
-        padding-bottom: 12px;
-        text-align: center;
-        background-color: #cecece;
-        color: #044767;
-      }
+          padding-top: 12px;
+          padding-bottom: 12px;
+          text-align: center;
+          background-color: #044767;
+          color: #fff;
+        }
+      #openprs tr:nth-child(even) td{background-color: #efefef;}
+      #openprs tr:nth-child(odd) td{background: #dedede;}
+
     </style>
   </head>
   <body>

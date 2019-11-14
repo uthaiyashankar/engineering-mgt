@@ -16,22 +16,8 @@
 
 import ballerina/http;
 import ballerina/log;
-import ballerina/task;
 
 listener http:Listener httpListener = new (7777);
-
-task:AppointmentConfiguration appointmentConfiguration = {
-    appointmentDetails: CRON_EXPRESSION
-};
-
-listener task:Listener appointment = new (appointmentConfiguration);
-
-service appointmentService on appointment {
-    resource function onTrigger() {
-        InsertIssueCountDetails();
-        log:printInfo("Issue Count table is updated");
-    }
-}
 
 @http:ServiceConfig {
     basePath: "/gitIssues",
@@ -49,9 +35,9 @@ service issuesCount on httpListener {
         // Initialize an empty http response message
         http:Response response = new;
         // Invoke retrieveData function to retrieve data from mysql database
-        json IssueCounts = retrieveIssueCountDetails();
+        json issueCounts = retrieveIssueCountDetails();
         // Send the response back to the client with the code coverage data
-        response.setPayload(<@untainted>IssueCounts);
+        response.setPayload(<@untainted>issueCounts);
         var respondRet = httpCaller->respond(response);
         if (respondRet is error) {
             // Log the error for the service maintainers.
@@ -79,15 +65,32 @@ service issuesCount on httpListener {
 
     @http:ResourceConfig {
         methods: ["GET"],
+        path: "/issueCountBylabel"
+    }
+    resource function getIssueCountByLabel(http:Caller httpCaller, http:Request request) {
+        // Initialize an empty http response message
+        http:Response response = new;
+        // Invoke retrieveData function to retrieve data from mysql database
+        var allGitIssueCount = getDetailsOfIssue();
+        // Send the response back to the client with the git issue data
+        response.setPayload(<@untainted>allGitIssueCount);
+        var respondRet = httpCaller->respond(response);
+        if (respondRet is error) {
+            // Log the error for the service maintainers.
+            log:printError("Error responding to the client", err = respondRet);
+        }
+    }
+    @http:ResourceConfig {
+        methods: ["GET"],
         path: "/issueCount"
     }
     resource function getIssueCount(http:Caller httpCaller, http:Request request) {
         // Initialize an empty http response message
         http:Response response = new;
         // Invoke retrieveData function to retrieve data from mysql database
-        var allGitIssueCount = getDetailsOfIssue();
+        var countIssueCount = getCountOfIssue();
         // Send the response back to the client with the git issue data
-        response.setPayload(allGitIssueCount);
+        response.setPayload(<@untainted>countIssueCount);
         var respondRet = httpCaller->respond(response);
         if (respondRet is error) {
             // Log the error for the service maintainers.

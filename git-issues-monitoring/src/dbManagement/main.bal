@@ -15,8 +15,11 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/io;
 import ballerina/log;
 import ballerina/task;
+import ballerina/time;
+
 
 http:Client gitClientEP = new ("https://api.github.com",
 config = {
@@ -32,12 +35,14 @@ task:AppointmentConfiguration appointmentConfiguration = {
 
 listener task:Listener appointment = new (appointmentConfiguration);
 
+
 service appointmentService on appointment {
     resource function onTrigger() {
         updateReposTable();
         log:printInfo("Repo table is updated");
         updateIssuesTable();
         log:printInfo("Issue table is updated");
+        InsertIssueCountDetails();
     }
 }
 
@@ -67,6 +72,7 @@ function updateReposTable() {
             boolean isEmpty = false;
             while (!isEmpty) {
                 string reqURL = "/users/" + organization.ORG_NAME.toString() + "/repos?&page=" + pageIterator.toString() + "&per_page=100";
+                io:println(reqURL);
                 var response = gitClientEP->get(reqURL, message = req);
                 if (response is http:Response) {
                     int statusCode = response.statusCode;
@@ -77,10 +83,13 @@ function updateReposTable() {
                             json[] repoJson = <json[]>respJson;
                             if (repoJson.length() == 0) {
                                 isEmpty = true;
+                                io:println(respJson.toString());
                             } else {
                                 orgRepos.push(repoJson);
-                                insertIntoReposTable(repoJson, <int>organization.ORG_ID);
+                                io:println(orgRepos.length());
+                                storeIntoReposTable(repoJson, <int>organization.ORG_ID);
                             }
+                            io:println(isEmpty);
                         }
                     } else {
                         log:printError("Error when calling the github API. StatusCode for the request is " +
@@ -106,24 +115,37 @@ function updateIssuesTable() {
     var organizations = retrieveAllOrganizations();
     if (organizations is json[]) {
         foreach var organization in organizations {
-            var repoUuidsJson = retrieveAllRepos(<int>organization.ORG_ID);
-            if (repoUuidsJson is json[]) {
-                var lastupdatedDate = githubDb->select(GET_UPDATED_DATE, LastUpdatedDate);
-                string lastUpdated = "";
-                if (lastupdatedDate is table<LastUpdatedDate>) {
-                    foreach ( LastUpdatedDate updatedDate in lastupdatedDate) {
-                        lastUpdated = updatedDate.date;
-                    }
-                } else {
-                    log:printError("Error occured while retrieving the last updated date : ", err = lastupdatedDate);
-                }
+            var repositoryJson = retrieveAllRepos(<int>organization.ORG_ID);
+            if (repositoryJson is json[]) {
+
                 if (<int>organization.ORG_ID != -1) {
-                    foreach var uuid in repoUuidsJson {
+                    foreach var uuid in repositoryJson {
                         int pageIterator = 1;
                         boolean isEmpty = false;
+                        var repositoryId = uuid.REPOSITORY_ID.toString();
+                        var lastupdatedDate = githubDb->select(GET_UPDATED_DATE, LastUpdatedDate, repositoryId);
+                        string lastUpdated = "";
+                        if (lastupdatedDate is table<LastUpdatedDate>) {
+                            if (lastupdatedDate.toString() != "") {
+                                foreach ( LastUpdatedDate updatedDate in lastupdatedDate) {
+                                    io:println(updatedDate.toString());
+                                    lastUpdated = updatedDate.date;
+                                }
+                            } else {
+                                lastupdatedDate.close();
+                                time:Time time = time:currentTime();
+                                time = time:subtractDuration(time, 0, 0, 1, 0, 0, 0, 0);
+                                lastUpdated = time:toString(time);
+                                io:println("hello outside");
+                                io:println(lastUpdated);
+                            }
+                        } else {
+                            log:printError("Error occured while retrieving the last updated date : ", err = lastupdatedDate);
+                        }
                         while (!isEmpty) {
                             string reqURL = "/repos/" + organization.ORG_NAME.toString() + "/" +
                             uuid.REPOSITORY_NAME.toString() + "/issues?since=" + <@untainted>lastUpdated + "&state=all&page=" + pageIterator.toString() + "&per_page=100";
+                            io:println(reqURL);
                             var response = gitClientEP->get(reqURL, message = req);
                             if (response is http:Response) {
                                 int statusCode = response.statusCode;
@@ -133,9 +155,11 @@ function updateIssuesTable() {
                                     if (respJson is json) {
                                         json[] repoJson = <json[]>respJson;
                                         if (repoJson.length() == 0) {
+                                            io:println("lastupdatedDate empty true", lastupdatedDate);
                                             isEmpty = true;
                                         } else {
-                                            insertIntoIssueTable(<json[]>respJson, <int>uuid.REPOSITORY_ID);
+                                            io:println("lastupdatedDate is updating", lastupdatedDate);
+                                            storeIntoIssueTable(<json[]>respJson, <int>uuid.REPOSITORY_ID);
                                         }
                                     }
                                 } else {
@@ -151,7 +175,7 @@ function updateIssuesTable() {
                 }
             } else {
                 log:printError("Returned is not a json. Error occured while retrieving repository details: ",
-                err = repoUuidsJson);
+                err = repositoryJson);
             }
         }
     } else {
@@ -166,18 +190,17 @@ function getAllIssues() {
     var repositories = retrieveAllReposDetails();
     if (repositories is json[]) {
         foreach var repository in repositories {
-            json[] repoUuidsJson = [];
             int orgId = <int>repository.ORG_ID;
             if (orgId != -1) {
-                var repoUuids = githubDb->select(GET_ORG_NAME, Organization, orgId);
+                var organizationName = githubDb->select(GET_ORG_NAME, Organization, orgId);
                 string orgName = "";
-                if (repoUuids is table<Organization>) {
-                    foreach ( Organization org in repoUuids) {
+                if (organizationName is table<Organization>) {
+                    foreach ( Organization org in organizationName) {
                         orgName = org.OrgName;
                     }
                 } else {
                     log:printError("Error occured while retrieving the organization name for the given org Id",
-                    err = repoUuids);
+                    err = organizationName);
                 }
                 int repositoryId = <int>repository.REPOSITORY_ID;
                 int pageIterator = 1;
@@ -196,7 +219,7 @@ function getAllIssues() {
                                 if (repoJson.length() == 0) {
                                     isEmpty = true;
                                 } else {
-                                    insertIntoIssueTable(<json[]>respJson, repositoryId);
+                                    storeIntoIssueTable(<json[]>respJson, repositoryId);
                                 }
                             }
                         } else {

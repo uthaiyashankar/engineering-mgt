@@ -27,8 +27,8 @@ class Popup extends React.Component {
     return (
       <div className='popup'>
         <div className='popup\_inner'>
-          <button style={{ fontSize: "18px" }} onClick={this.props.closePopup}>
-            Close
+          <button style={{ fontSize: "18px",display: "block",position: "fixed",right:"10" ,top: "10",width: "32px",height: "32px" ,color:"white",background:"#800000",fontWeight:"bold"}} onClick={this.props.closePopup}>
+            X
           </button>
 
           <h1>{this.props.text}</h1>

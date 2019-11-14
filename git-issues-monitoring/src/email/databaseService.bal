@@ -20,7 +20,7 @@ import ballerina/log;
 import ballerinax/java.jdbc;
 
 jdbc:Client githubDb = new ({
-    url: "jdbc:mysql://localhost:3306/WSO2_ORGANIZATION_DETAILS",
+    url: config:getAsString("DB_URL"),
     username: config:getAsString("DB_USERNAME"),
     password: config:getAsString("DB_PASSWORD"),
     dbOptions: {useSSL: false}
@@ -38,10 +38,10 @@ function retrieveAllTeams() returns json[]? {
 }
 
 function retrieveAllIssuesByTeam(int teamId) returns json[]? {
-    var repositories = githubDb->select(RETRIEVE_ISSUES_BY_TEAM, (), teamId);
-    if (repositories is table<record {}>) {
-        json repositoriesJson = jsonutils:fromTable(repositories);
-        return <json[]>repositoriesJson;
+    var issues = githubDb->select(RETRIEVE_ISSUES_BY_TEAM, (), teamId);
+    if (issues is table<record {}>) {
+        json issuesJson = jsonutils:fromTable(issues);
+        return <json[]>issuesJson;
     } else {
         log:printDebug("Error occured while retrieving the repo details from Database");
     }
