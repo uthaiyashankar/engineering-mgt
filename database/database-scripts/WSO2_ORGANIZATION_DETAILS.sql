@@ -24,7 +24,7 @@ CREATE TABLE `ENGAPP_GITHUB_ISSUES` (
   `LABELS` varchar(500) DEFAULT NULL,
   `ASSIGNEES` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`ISSUE_ID`)
-  )
+  );
 
 --
 -- Dumping data for table `ENGAPP_GITHUB_ISSUES`
@@ -39,7 +39,7 @@ CREATE TABLE `ENGAPP_GITHUB_ORGANIZATIONS` (
   `GITHUB_ID` varchar(50) NOT NULL,
   `ORG_NAME` varchar(100) NOT NULL,
   PRIMARY KEY (`ORG_ID`)
-  )
+  );
 
 --
 -- Dumping data for table `ENGAPP_GITHUB_ORGANIZATIONS`
@@ -59,7 +59,7 @@ CREATE TABLE `ENGAPP_GITHUB_REPOSITORIES` (
   `URL` varchar(150) NOT NULL,
   `TEAM_ID` int(11) NOT NULL,
   PRIMARY KEY (`REPOSITORY_ID`)
-  )
+  );
 
 --
 -- Dumping data for table `ENGAPP_GITHUB_REPOSITORIES`
@@ -76,7 +76,7 @@ CREATE TABLE `ENGAPP_TEAMS` (
   `TEAM_NAME` varchar(100) NOT NULL,
   `TEAM_ABBR` varchar(45) NOT NULL,
   PRIMARY KEY (`TEAM_ID`)
-)
+);
 --
 -- Dumping data for table `ENGAPP_TEAMS`
 --
@@ -93,7 +93,7 @@ CREATE TABLE `ENGAPP_ISSUE_COUNT` (
   `OPEN_ISSUES` int(11) NOT NULL DEFAULT '0',
   `CLOSED_ISSUES` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`)
-)
+);
 --
 -- Dumping data for table `ENGAPP_ISSUE_COUNT`
 --
