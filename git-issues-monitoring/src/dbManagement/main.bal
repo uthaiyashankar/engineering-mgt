@@ -115,11 +115,11 @@ function updateIssuesTable() {
     var organizations = retrieveAllOrganizations();
     if (organizations is json[]) {
         foreach var organization in organizations {
-            var repoUuidsJson = retrieveAllRepos(<int>organization.ORG_ID);
-            if (repoUuidsJson is json[]) {
+            var repositoryJson = retrieveAllRepos(<int>organization.ORG_ID);
+            if (repositoryJson is json[]) {
 
                 if (<int>organization.ORG_ID != -1) {
-                    foreach var uuid in repoUuidsJson {
+                    foreach var uuid in repositoryJson {
                         int pageIterator = 1;
                         boolean isEmpty = false;
                         var repositoryId = uuid.REPOSITORY_ID.toString();
@@ -128,7 +128,6 @@ function updateIssuesTable() {
                         if (lastupdatedDate is table<LastUpdatedDate>) {
                             if (lastupdatedDate.toString() != "") {
                                 foreach ( LastUpdatedDate updatedDate in lastupdatedDate) {
-                                    io:println("hello inside");
                                     io:println(updatedDate.toString());
                                     lastUpdated = updatedDate.date;
                                 }
@@ -168,7 +167,6 @@ function updateIssuesTable() {
                                     statusCode.toString() + ". " + response.getJsonPayload().toString());
                                 }
                             } else {
-                                io:println("jdkjghdkfjdlf");
                                 log:printError("Error when calling backend : " + response.detail().toString());
                             }
                             pageIterator = pageIterator + 1;
@@ -177,7 +175,7 @@ function updateIssuesTable() {
                 }
             } else {
                 log:printError("Returned is not a json. Error occured while retrieving repository details: ",
-                err = repoUuidsJson);
+                err = repositoryJson);
             }
         }
     } else {
@@ -192,18 +190,17 @@ function getAllIssues() {
     var repositories = retrieveAllReposDetails();
     if (repositories is json[]) {
         foreach var repository in repositories {
-            json[] repoUuidsJson = [];
             int orgId = <int>repository.ORG_ID;
             if (orgId != -1) {
-                var repoUuids = githubDb->select(GET_ORG_NAME, Organization, orgId);
+                var organizationName = githubDb->select(GET_ORG_NAME, Organization, orgId);
                 string orgName = "";
-                if (repoUuids is table<Organization>) {
-                    foreach ( Organization org in repoUuids) {
+                if (organizationName is table<Organization>) {
+                    foreach ( Organization org in organizationName) {
                         orgName = org.OrgName;
                     }
                 } else {
                     log:printError("Error occured while retrieving the organization name for the given org Id",
-                    err = repoUuids);
+                    err = organizationName);
                 }
                 int repositoryId = <int>repository.REPOSITORY_ID;
                 int pageIterator = 1;

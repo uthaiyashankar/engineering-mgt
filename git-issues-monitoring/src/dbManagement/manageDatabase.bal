@@ -72,15 +72,13 @@ function getIssueLabels(json[] issueLabels) returns string {
     int i=1;
     foreach var label in issueLabels {
 
-        if(numOfLabels==i){
+        if(numOfLabels == i){
         labels = labels + label.name.toString() ;
         }
         else{
         labels = labels + label.name.toString() + ",";
-        i=i+1;
+        i = i+1;
         }
-
-
     }
     return labels;
 }
@@ -91,13 +89,13 @@ function getIssueAssignees(json[] issueAssignees) returns string {
     string assignees = "";
     int i=1;
     foreach var assignee in issueAssignees {
-        if(numOfAssignees==i)
+        if(numOfAssignees == i)
         {
         assignees = assignees + assignee.login.toString();
         }
         else{
         assignees = assignees + assignee.login.toString() + ",";
-        i=i+1;
+        i = i+1;
         }
     }
     return assignees;
@@ -105,34 +103,34 @@ function getIssueAssignees(json[] issueAssignees) returns string {
 
 //Updates the repository table
 function storeIntoReposTable(json[] response, int orgId) {
-     foreach var repository in response {
-        boolean flag = true;
-        string gitUuid = repository.id.toString();
-        string repoName = repository.name.toString();
-        string url = repository.html_url.toString();
-        int teamId = 100;
-        var repoUuidsJson = retrieveAllRepos(orgId);
-        if(repoUuidsJson is json[]) {
-            foreach var uuid in repoUuidsJson {
-                if(gitUuid == uuid.GITHUB_ID.toString()){
-                    flag = false;
-                    if (repoName != uuid.REPOSITORY_NAME.toString() || url != uuid.URL.toString()) {
-                          var ret = githubDb->update(UPDATE_REPOSITORIES, repoName, url, gitUuid);
-                          handleUpdate(ret, "Updated the repository details with variable parameters");
-                     }
-                }
-            }
-        } else {
-            log:printError("Returned is not a json. Error occured while retrieving  the repository details: ",
-            err = repoUuidsJson);
-        }
-        if(flag){
-           var ret = githubDb->update(INSERT_REPOSITORIES,
-                                gitUuid, repoName, orgId, url, teamId);
-           handleUpdate(ret, "Inserted repository details with variable parameters");
-        }
-    }
-}
+     map<json> existingRepos = {};
+         var repoJson = retrieveAllRepos(orgId);
+         if (repoJson is json[]) {
+             foreach json uuid in repoJson {
+                 existingRepos[uuid.GITHUB_ID.toString()] = uuid;
+             }
+         } else {
+     	    log:printError("Returned is not a json. Error occured while retrieving  the repository details: ",
+     	    err = repoJson);
+         }
+         foreach var repository in response {
+             string gitUuid = repository.id.toString();
+             string repoName = repository.name.toString();
+             string url = repository.html_url.toString();
+             int teamId = 100;
+             if (existingRepos.hasKey(repository.id.toString())) {
+                  if (repoName != existingRepos[gitUuid].REPOSITORY_NAME || url != existingRepos[gitUuid].URL) {
+                     var ret = githubDb->update(UPDATE_REPOSITORIES, repoName, url, gitUuid);
+                     handleUpdate(ret, "Updated the repository details with variable parameters");
+                 }
+             } else {
+                 var ret = githubDb->update(INSERT_REPOSITORIES,
+                 gitUuid, repoName, orgId, url, teamId);
+                 handleUpdate(ret, "Inserted repository details with variable parameters");
+             }
+     	}
+     }
+
 
 //Update to the repo table
 function storeIntoIssueTable(json[] response, int repositoryId) {
@@ -174,9 +172,9 @@ function storeIntoIssueTable(json[] response, int repositoryId) {
 //Update the Org Id as -1 if that repository is no more in that organization
 function updateOrgId (json[] repoJson, int orgId) {
     int id =-1;
-    var repoUuidsJson =retrieveAllRepos(orgId);
-    if(repoUuidsJson is json[]) {
-        foreach var uuid in repoUuidsJson {
+    var repoJsons =retrieveAllRepos(orgId);
+    if(repoJsons is json[]) {
+        foreach var uuid in repoJsons {
             boolean exists = false;
             foreach json repositoryset in repoJson {
                 json[] reposet = <json[]> repositoryset;
@@ -193,7 +191,7 @@ function updateOrgId (json[] repoJson, int orgId) {
             }
         }
     } else {
-        log:printError("Error occured while updating the organization id to the repository", err = repoUuidsJson);
+        log:printError("Error occured while updating the organization id to the repository", err = repoJsons);
     }
 }
 

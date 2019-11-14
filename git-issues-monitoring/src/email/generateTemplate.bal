@@ -66,7 +66,7 @@ string htmlHeader = string `
       #openprs tr{
         background-color: #dedede;
       }
-      #openprs tr:hover {background-color: #efefef;}
+      #openprs tr:hover {background-color: #dedede;}
       #openprs th {
           padding-top: 12px;
           padding-bottom: 12px;
