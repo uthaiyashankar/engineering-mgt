@@ -1,11 +1,4 @@
 
--- MySQL dump 10.13  Distrib 8.0.16, for macos10.14 (x86_64)
---
--- Host: localhost    Database: WSO2_ORGANIZATION_DETAILS
--- ------------------------------------------------------
--- Server version	8.0.16
-
-
 --
 -- Table structure for table `ENGAPP_GITHUB_ISSUES`
 --
@@ -26,9 +19,6 @@ CREATE TABLE `ENGAPP_GITHUB_ISSUES` (
   PRIMARY KEY (`ISSUE_ID`)
   );
 
---
--- Dumping data for table `ENGAPP_GITHUB_ISSUES`
---
 
 -- Table structure for table `ENGAPP_GITHUB_ORGANIZATIONS`
 --
@@ -40,11 +30,6 @@ CREATE TABLE `ENGAPP_GITHUB_ORGANIZATIONS` (
   `ORG_NAME` varchar(100) NOT NULL,
   PRIMARY KEY (`ORG_ID`)
   );
-
---
--- Dumping data for table `ENGAPP_GITHUB_ORGANIZATIONS`
---
-
 
 --
 -- Table structure for table `ENGAPP_GITHUB_REPOSITORIES`
@@ -61,10 +46,6 @@ CREATE TABLE `ENGAPP_GITHUB_REPOSITORIES` (
   PRIMARY KEY (`REPOSITORY_ID`)
   );
 
---
--- Dumping data for table `ENGAPP_GITHUB_REPOSITORIES`
---
-
 
 --
 -- Table structure for table `ENGAPP_GITHUB_TEAMS`
@@ -77,10 +58,6 @@ CREATE TABLE `ENGAPP_TEAMS` (
   `TEAM_ABBR` varchar(45) NOT NULL,
   PRIMARY KEY (`TEAM_ID`)
 );
---
--- Dumping data for table `ENGAPP_TEAMS`
---
-
 
 --
 -- Table structure for table `ENGAPP_ISSUE_COUNT`
@@ -94,9 +71,3 @@ CREATE TABLE `ENGAPP_ISSUE_COUNT` (
   `CLOSED_ISSUES` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`)
 );
---
--- Dumping data for table `ENGAPP_ISSUE_COUNT`
---
-
-
--- Dump completed on 2019-10-25 15:35:37
