@@ -29,6 +29,20 @@ type Repository record {
     string repoURL;
 };
 
+type Issue record {
+    int issueId;
+    string githubId;
+    int repositoryId;
+    string  createdDate;
+    string updatedDate;
+    string closedDate;
+    string createdBy;
+    string issueType;
+    string issueURL;
+    string labels;
+    string assignees;
+};
+
 type LastIssueUpdatedDate record {
     int repositoryId;
     string date;

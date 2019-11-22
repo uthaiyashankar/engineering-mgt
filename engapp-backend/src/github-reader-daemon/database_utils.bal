@@ -48,17 +48,6 @@ function getAllOrganizationsFromDB() returns map<Organization> {
     return existingOrgs;
 }
 
-// //Retrieves repository details from the database
-// function retrieveAllReposDetails() returns json[]? {
-//     var repositories = engappDb->select(RETRIEVE_REPOSITORIES, ());
-//     if (repositories is table<record {}>) {
-//         json repositoriesJson = jsonutils:fromTable(repositories);
-//         return <json[]>repositoriesJson;
-//     } else {
-//         log:printError("Error occured while retrieving the repository details: ", err = repositories);
-//     }
-// }
-
 //Get all existing repository details from the database
 function getAllRepositoriesFromDB() returns map<Repository>|error {
     table<Repository>|error dbResult = engappDb->select(GET_ALL_REPOSITORIES, Repository);
@@ -78,7 +67,7 @@ function getAllRepositoriesFromDB() returns map<Repository>|error {
 
 
 //Store repositories into the database
-function storeRepositoriesToDB(map<[int, json[]]> repositories) {
+function storeRepositoriesToDB(map<[int, Repository[]]> repositories) {
     map<Repository>|error retVal = getAllRepositoriesFromDB();
     map<Repository> existingRepos;
     map<Repository> processedRepos = {};
@@ -91,16 +80,16 @@ function storeRepositoriesToDB(map<[int, json[]]> repositories) {
     }
 
     //Loop thourgh the new repos and see which should be updated and which should be inserted
-    foreach [int, json[]] [orgId, repositoriesOfOrg] in repositories {
-        foreach json repository in repositoriesOfOrg {
-            string githubIdOfRepo = repository.id.toString();
-            string repoName = repository.name.toString();
-            string url = repository.html_url.toString();
+    foreach [int, Repository[]] [orgId, repositoriesOfOrg] in repositories {
+        foreach Repository repository in repositoriesOfOrg {
+            string githubIdOfRepo = repository.githubId;
+            string repoName = repository.repositoryName;
+            string url = repository.repoURL;
             Repository? existingRepo = existingRepos[githubIdOfRepo];
             if (existingRepo is Repository) {
-                // we already have this in the database. 
+                //we already have this in the database. 
                 //Remember processed repos of existing repositories. This is to update organization id of non-processed 
-                // existing repositories to -1
+                //existing repositories to -1
                 processedRepos[githubIdOfRepo] = existingRepo;
 
                 if (repoName != existingRepo.repositoryName || url != existingRepo.repoURL || orgId != existingRepo.orgId) {
@@ -175,7 +164,7 @@ function getAllIssueIdsFromDB() returns map<int>|error {
     }
 }
 
-function storeIssuesToDB(map<[int, json[]]> issues) {
+function storeIssuesToDB(map<[int, Issue[]]> issues) {
     //Get all the issue ids. It is needed to decide whether to update or insert
     map<int>|error retVal = getAllIssueIdsFromDB();
     map<int> existingIssueIds;
@@ -188,39 +177,24 @@ function storeIssuesToDB(map<[int, json[]]> issues) {
     }
 
     //Loop through the issues from github and store them to database
-    foreach [int, json[]] [repositoryId, issuesOfRepo] in issues {
-        foreach json issue in issuesOfRepo {
-            jdbc:Parameter createdTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.created_at.toString()};
-            jdbc:Parameter updatedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.updated_at.toString()};
-            jdbc:Parameter closedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.closed_at.toString()};
-            string htmlUrl = issue.html_url.toString();
-            string githubId = issue.id.toString();
-            string createdby = issue.user.login.toString();
-            
-            var issueLabels = issue.labels;
-            string labels = "";
-            if (issueLabels is json)
-            {
-                labels = getIssueLabels(<json[]>issueLabels);
-            }
-            
-            var issueAssignees = issue.assignees;
-            string assignees = "";
-            if (issueAssignees is json)
-            {
-                assignees = getIssueAssignees(<json[]>issueAssignees);
-            }
-            
-            //Check whether the type is issue or PR, based on the URL
-            int? index = htmlUrl.indexOf("pull");
-            string typeOfIssue = (index is int) ? "PR" : "ISSUE";
+    foreach [int, Issue[]] [repositoryId, issuesOfRepo] in issues {
+        foreach Issue issue in issuesOfRepo {
+            jdbc:Parameter createdTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.createdDate};
+            jdbc:Parameter updatedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.updatedDate};
+            jdbc:Parameter closedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.closedDate};
+            string htmlUrl = issue.issueURL;
+            string githubId = issue.githubId;
+            string createdby = issue.createdBy;
+            string labels = issue.labels;
+            string assignees = issue.assignees;
+            string issueType = issue.issueType;
 
             int? issueId = existingIssueIds[githubId];
             if (issueId is int) {
                 // we already have this in the database. 
                 // We are blindly updating without checking whether the values are changed, since we have read from last updated date. 
                 var  ret = engappDb->update(UPDATE_ISSUES, repositoryId, createdTime, updatedTime, closedTime, createdby,
-                    typeOfIssue, htmlUrl, labels, assignees, issueId);
+                    issueType, htmlUrl, labels, assignees, issueId);
    
                 if (ret is error){
                     log:printError("Error in updating issues: issueId = [" + 
@@ -230,7 +204,7 @@ function storeIssuesToDB(map<[int, json[]]> issues) {
             } else {
                 //This is a new issue. We need to insert
                 var ret = engappDb->update(INSERT_ISSUES, githubId, repositoryId, createdTime, updatedTime, closedTime,
-                    createdby, typeOfIssue, htmlUrl, labels, assignees);
+                    createdby, issueType, htmlUrl, labels, assignees);
                 if (ret is error){
                     log:printError("Error in inserting issue: issueGithubId = [" + githubId + 
                         "], issueURL = [" + htmlUrl + "]", err = ret);
@@ -242,6 +216,16 @@ function storeIssuesToDB(map<[int, json[]]> issues) {
     }
 }
 
+// //Retrieves repository details from the database
+// function retrieveAllReposDetails() returns json[]? {
+//     var repositories = engappDb->select(RETRIEVE_REPOSITORIES, ());
+//     if (repositories is table<record {}>) {
+//         json repositoriesJson = jsonutils:fromTable(repositories);
+//         return <json[]>repositoriesJson;
+//     } else {
+//         log:printError("Error occured while retrieving the repository details: ", err = repositories);
+//     }
+// }
     
 //                         
 //                         string lastUpdated = "";
@@ -263,33 +247,7 @@ function storeIssuesToDB(map<[int, json[]]> issues) {
 
 
 
-//Get issue labels for an issue
-function getIssueLabels(json[] issueLabels) returns string {
-    string commaSeperatedVal = "";
-    foreach var label in issueLabels {
-        commaSeperatedVal = commaSeperatedVal + label.name.toString() + ", ";
-    }
 
-    //Have to remove the last trailing comma. However, it could be empty array
-    if (issueLabels.length() != 0) {
-        commaSeperatedVal =  commaSeperatedVal.substring(0, commaSeperatedVal.length() - 2);
-    }
-    return commaSeperatedVal;
-}
-
-//Get issue assignees for an issue
-function getIssueAssignees(json[] issueAssignees) returns string {
-    string commaSeperatedVal = "";
-    foreach var assignee in issueAssignees {
-        commaSeperatedVal = commaSeperatedVal + assignee.login.toString() + ", ";
-    }
-
-    //Have to remove the last trailing comma. However, it could be empty array
-    if (issueAssignees.length() != 0) {
-        commaSeperatedVal =  commaSeperatedVal.substring(0, commaSeperatedVal.length() - 2);
-    }
-    return commaSeperatedVal;
-}
 
 
 

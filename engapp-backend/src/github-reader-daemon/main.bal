@@ -17,7 +17,6 @@
 
 import ballerina/log;
 import ballerina/task;
-// import ballerina/time;
 import ballerina/config;
 
 
@@ -52,9 +51,9 @@ public function main() {
 //Fetch repositories from github and store in database
 function fetchAndStoreAllRepositories() {
     map<Organization> organizations = getAllOrganizationsFromDB();
-    map<[int, json[]]> repositories = {};
+    map<[int, Repository[]]> repositories = {};
     foreach Organization organization in organizations {
-        json[] orgRepos = fetchReposOfOrgFromGithub(organization);
+        Repository[] orgRepos = fetchReposOfOrgFromGithub(organization);
         repositories[organization.id.toString()] = [organization.id, orgRepos];
     }
     storeRepositoriesToDB(repositories);
@@ -80,7 +79,7 @@ function fetchAndStoreAllIssues() {
     map<string> lastUpdateDateOfIssuesPerRepo = getLastUpdateDateOfIssuesPerRepo();
 
     //Loop through the repo and get the issues
-    map<[int, json[]]> issues = {};
+    map<[int, Issue[]]> issues = {};
     foreach Repository repository in repositories {
         //Get the organization of the repo
         Organization org;
@@ -94,7 +93,7 @@ function fetchAndStoreAllIssues() {
         //Get the last updated date. If it is not there, () is fine. We can get all issues of repo
         string? lastUdatedDate = lastUpdateDateOfIssuesPerRepo[repository.repositoryId.toString()];
 
-        json[] issuesOfRepo = fetchIssuesOfRepoFromGithub(repository, org, lastUdatedDate);
+        Issue[] issuesOfRepo = fetchIssuesOfRepoFromGithub(repository, org, lastUdatedDate);
         issues[repository.repositoryId.toString()] = [repository.repositoryId, issuesOfRepo];
     }
 
