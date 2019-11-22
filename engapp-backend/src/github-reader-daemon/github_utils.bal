@@ -20,7 +20,8 @@ import ballerina/config;
 
 function fetchReposOfOrgFromGithub (Organization organization) returns json[]{
     string reqURL = "/users/" + organization.orgName + "/repos?&per_page=100";
-    return getResponseFromGithub(reqURL, "getting repositories");
+    boolean continueOnError = true; //We can still load repositories later
+    return getResponseFromGithub(reqURL, "getting repositories", continueOnError);
 }
 
 function fetchIssuesOfRepoFromGithub (Repository repository, Organization organization, string? lastUdatedDate) returns json[] {
@@ -30,11 +31,12 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
         //There is a valid last update time. Hence, we can read only the issues updated after that time
         reqURL = reqURL + "&since=" + lastUdatedDate;
     }
+    boolean continueOnError = false; //If error happens, we shouldn't load other pages. It will catchup later
 
-    return getResponseFromGithub(reqURL, "getting issues");
+    return getResponseFromGithub(reqURL, "getting issues", continueOnError);
 }
 
-function getResponseFromGithub (string url, string actionContext) returns json[] {
+function getResponseFromGithub (string url, string actionContext, boolean continueOnError) returns json[] {
     http:Client gitClientEP = new ("https://api.github.com",
     config = {
         followRedirects: {
@@ -56,14 +58,19 @@ function getResponseFromGithub (string url, string actionContext) returns json[]
         string reqURL = url + "&page=" + pageIterator.toString();
 
         http:Response|error retVal = gitClientEP->get(reqURL, message = req);
-        http:Response response;
+        http:Response response = new; //initialized to avoid compiler warning due to nested loops
         
         //Check whether the response is valid
         if (retVal is error) {
             log:printError("Error when calling the github API : " + retVal.detail().toString(), err = retVal);
             log:printError("[Context] Action = [" + actionContext + "], URL = [" + reqURL + "]");
-            //Even though it is an error, we are continuing with calling remaining pages
-            continue;
+            if (continueOnError) {
+                //Even though it is an error, we are continuing with calling remaining pages
+                continue;
+            } else {
+                log:printError("Stoping the action [" + actionContext + "]");
+                return [];
+            }
         } else {
             response = retVal;
         }
@@ -75,8 +82,13 @@ function getResponseFromGithub (string url, string actionContext) returns json[]
                 statusCode.toString() + ". " + response.getJsonPayload().toString());
             log:printError("[Context] Action = [" + actionContext + "], URL = [" + reqURL + 
                 "], StatusCode = [" + statusCode.toString() + "]");
-            //Even though it is an error, we are continuing with calling remaining pages
-            continue;
+            if (continueOnError) {
+                //Even though it is an error, we are continuing with calling remaining pages
+                continue;
+            } else {
+                log:printError("Stoping the action [" + actionContext + "]");
+                return [];
+            }
         }
         
         //Check whether the response contains json payload
@@ -84,8 +96,13 @@ function getResponseFromGithub (string url, string actionContext) returns json[]
         if (respJson is error) {
             log:printError("Error when calling the github API. Response is not JSON", err = respJson);
             log:printError("[Context] Action = [" + actionContext + "], URL = [" + reqURL + "]");
-            //Even though it is an error, we are continuing with calling remaining pages
-            continue;
+            if (continueOnError) {
+                //Even though it is an error, we are continuing with calling remaining pages
+                continue;
+            } else {
+                log:printError("Stoping the action [" + actionContext + "]");
+                return [];
+            }
         }
         
         //All checkes are validated. Process the response and store them

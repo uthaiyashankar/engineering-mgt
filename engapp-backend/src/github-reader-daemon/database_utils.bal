@@ -196,29 +196,24 @@ function storeIssuesToDB(map<[int, json[]]> issues) {
             string htmlUrl = issue.html_url.toString();
             string githubId = issue.id.toString();
             string createdby = issue.user.login.toString();
-            string labels = getCommaSeperatedListFromArray(<json[]>issue.labels);
-            string assignees = getCommaSeperatedListFromArray(<json[]>issue.assignees);
             
-            // var issueLabels = issue.labels;
-            // string labels = "";
-            // if (issueLabels is json)
-            // {
-            //     labels = getCommaSeperatedListFromArray(<json[]>issueLabels);
-            // }
+            var issueLabels = issue.labels;
+            string labels = "";
+            if (issueLabels is json)
+            {
+                labels = getIssueLabels(<json[]>issueLabels);
+            }
             
-            
-            // var issueAssignees = issue.assignees;
-            // string assignees = "";
-            // if (issueAssignees is json)
-            // {
-            //     assignees = getCommaSeperatedListFromArray(<json[]>issueAssignees);
-            // }
+            var issueAssignees = issue.assignees;
+            string assignees = "";
+            if (issueAssignees is json)
+            {
+                assignees = getIssueAssignees(<json[]>issueAssignees);
+            }
             
             //Check whether the type is issue or PR, based on the URL
             int? index = htmlUrl.indexOf("pull");
             string typeOfIssue = (index is int) ? "PR" : "ISSUE";
-
-
 
             int? issueId = existingIssueIds[githubId];
             if (issueId is int) {
@@ -239,6 +234,7 @@ function storeIssuesToDB(map<[int, json[]]> issues) {
                 if (ret is error){
                     log:printError("Error in inserting issue: issueGithubId = [" + githubId + 
                         "], issueURL = [" + htmlUrl + "]", err = ret);
+                    log:printError ("Assignees [" + assignees + "]");
                     //Ignore this insert and continue
                 }
             }
@@ -267,7 +263,33 @@ function storeIssuesToDB(map<[int, json[]]> issues) {
 
 
 
+//Get issue labels for an issue
+function getIssueLabels(json[] issueLabels) returns string {
+    string commaSeperatedVal = "";
+    foreach var label in issueLabels {
+        commaSeperatedVal = commaSeperatedVal + label.name.toString() + ", ";
+    }
 
+    //Have to remove the last trailing comma. However, it could be empty array
+    if (issueLabels.length() != 0) {
+        commaSeperatedVal =  commaSeperatedVal.substring(0, commaSeperatedVal.length() - 2);
+    }
+    return commaSeperatedVal;
+}
+
+//Get issue assignees for an issue
+function getIssueAssignees(json[] issueAssignees) returns string {
+    string commaSeperatedVal = "";
+    foreach var assignee in issueAssignees {
+        commaSeperatedVal = commaSeperatedVal + assignee.login.toString() + ", ";
+    }
+
+    //Have to remove the last trailing comma. However, it could be empty array
+    if (issueAssignees.length() != 0) {
+        commaSeperatedVal =  commaSeperatedVal.substring(0, commaSeperatedVal.length() - 2);
+    }
+    return commaSeperatedVal;
+}
 
 
 

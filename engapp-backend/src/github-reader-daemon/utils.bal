@@ -27,15 +27,15 @@ function mergeArrays (any[] mergeTo, any[] mergeFrom){
     }
 }
 
-function getCommaSeperatedListFromArray (any[] array) returns string {
-    string commaSeperatedVal = "";
-    foreach var item in array {
-        commaSeperatedVal = commaSeperatedVal + item.toString() + ", ";
-    }
+// function getCommaSeperatedListFromArray (any[] array) returns string {
+//     string commaSeperatedVal = "";
+//     foreach var item in array {
+//         commaSeperatedVal = commaSeperatedVal + item.toString() + ", ";
+//     }
 
-    //Have to remove the last trailing comma. However, it could be empty array
-    if (array.length() != 0) {
-        commaSeperatedVal =  commaSeperatedVal.substring(0, commaSeperatedVal.length() - 2);
-    }
-    return commaSeperatedVal;
-}
+//     //Have to remove the last trailing comma. However, it could be empty array
+//     if (array.length() != 0) {
+//         commaSeperatedVal =  commaSeperatedVal.substring(0, commaSeperatedVal.length() - 2);
+//     }
+//     return commaSeperatedVal;
+// }
