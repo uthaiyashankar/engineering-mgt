@@ -27,7 +27,6 @@ type Repository record {
     string repositoryName;
     int orgId;
     string repoURL;
-    int teamId;
 };
 
 // type LastUpdatedDate record {

@@ -31,13 +31,14 @@ int unknownOrgId = -1;
 
 
 //Retrieves organization details from the database
-function getAllOrganizationsFromDB() returns Organization[] {
-    Organization[] existingOrgs = [];
+function getAllOrganizationsFromDB() returns map<Organization> {
+    map<Organization> existingOrgs = {};
     var organizations = engappDb->select(RETRIEVE_ORGANIZATIONS, Organization);
     if (organizations is table<Organization>) {
         foreach Organization org in organizations {
             if (org.id != unknownOrgId){
-                existingOrgs.push(org);
+                //Nothing to untaint at this stage
+                existingOrgs[org.id.toString()] = <@untainted> org;
             }
         }
     } else {
@@ -94,7 +95,6 @@ function storeRepositoriesToDB(map<[int, json[]]> repositories) {
     }
 
     //Loop thourgh the new repos and see which should be updated and which should be inserted
-    int defaultTeamId = -1;
     foreach [int, json[]] [orgId, repoSet] in repositories {
         foreach json repository in repoSet {
             string githubIdOfRepo = repository.id.toString();
@@ -118,7 +118,7 @@ function storeRepositoriesToDB(map<[int, json[]]> repositories) {
                 }
             } else {
                 //This is a new repository. We need to insert
-                var ret = engappDb->update(INSERT_REPOSITORY, githubIdOfRepo, repoName, orgId, url, defaultTeamId);
+                var ret = engappDb->update(INSERT_REPOSITORY, githubIdOfRepo, repoName, orgId, url);
                 if (ret is error){
                     log:printError("Error in inserting repository: RepositoryGithubId = [" + githubIdOfRepo + 
                         "], RepoURL = [" + url + "]", err = ret);

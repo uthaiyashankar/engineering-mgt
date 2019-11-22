@@ -15,6 +15,12 @@
 // under the License.
 
 
+// ========================================================================================
+// TODO : Ideally, these utils should be provided by the Ballerina and standard libraries. 
+// I couldn't find suitable functions to do this. Hence, wrote them as utils. If we find 
+// Suitable functions, we have to replace these utils with standard functions
+// ========================================================================================
+
 function mergeArrays (any[] mergeTo, any[] mergeFrom){
     foreach var item in mergeFrom {
         mergeTo.push(item);

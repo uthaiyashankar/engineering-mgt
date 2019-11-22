@@ -44,14 +44,14 @@ listener task:Listener appointment = new (appointmentConfiguration);
 public function main() {
     log:printInfo("==== Starting Github Reader Daemon =====");
     fetchAndStoreAllRepositories();
-    //fetchAllIssues();
+    //fetchAndStoreAllIssues();
 
     log:printInfo("==== Finishing initial processing =====");
 }
 
 //Fetch repositories from github and store in database
 function fetchAndStoreAllRepositories() {
-    Organization[] organizations = getAllOrganizationsFromDB();
+    map<Organization> organizations = getAllOrganizationsFromDB();
     map<[int, json[]]> repositories = {};
     foreach Organization organization in organizations {
         json[] orgRepos = fetchReposOfOrgFromGithub(organization);
@@ -60,9 +60,66 @@ function fetchAndStoreAllRepositories() {
     storeRepositoriesToDB(repositories);
 }
 
+//Fetch all issues from github from last update time and store in database
+function fetchAndStoreAllIssues() {
+    //Get all organizations
+}
 
 
-//Update the issue table
+// //Fetch all issues from github and store in database
+// function fetchAllIssues() {
+//     http:Request req = new;
+//     req.addHeader("Authorization", "token " + AUTH_KEY);
+//     var repositories = retrieveAllReposDetails();
+//     if (repositories is json[]) {
+//         foreach var repository in repositories {
+//             int orgId = <int>repository.ORG_ID;
+//             if (orgId != -1) {
+//                 var organizationName = githubDb->select(GET_ORG_NAME, Organization, orgId);
+//                 string orgName = "";
+//                 if (organizationName is table<Organization>) {
+//                     foreach ( Organization org in organizationName) {
+//                         orgName = org.OrgName;
+//                     }
+//                 } else {
+//                     log:printError("Error occured while retrieving the organization name for the given org Id",
+//                     err = organizationName);
+//                 }
+//                 int repositoryId = <int>repository.REPOSITORY_ID;
+//                 int pageIterator = 1;
+//                 boolean isEmpty = false;
+//                 while (!isEmpty) {
+//                     string reqURL = "/repos/" + <@untainted>orgName + "/" + repository.REPOSITORY_NAME.toString() +
+//                     "/issues?state=all&page=" + pageIterator.toString() + "&per_page=100";
+//                     var response = gitClientEP->get(reqURL, message = req);
+//                     if (response is http:Response) {
+//                         int statusCode = response.statusCode;
+//                         if (statusCode == http:STATUS_OK || statusCode == http:STATUS_MOVED_PERMANENTLY)
+//                         {
+//                             var respJson = response.getJsonPayload();
+//                             if (respJson is json) {
+//                                 json[] repoJson = <json[]>respJson;
+//                                 if (repoJson.length() == 0) {
+//                                     isEmpty = true;
+//                                 } else {
+//                                     storeIntoIssueTable(<json[]>respJson, repositoryId);
+//                                 }
+//                             }
+//                         } else {
+//                             log:printError("Error when calling the github API. StatusCode for the request is " +
+//                             statusCode.toString() + ". " + response.getJsonPayload().toString());
+//                         }
+//                     } else {
+//                         log:printError("Error when calling the backend : " + response.detail().toString());
+//                     }
+//                     pageIterator = pageIterator + 1;
+//                 }
+//             }
+//         }
+//     }
+// }
+
+// //Update the issue table
 // function updateIssuesTable() {
 //     http:Request req = new;
 //     req.addHeader("Authorization", "token " + AUTH_KEY);
@@ -137,55 +194,4 @@ function fetchAndStoreAllRepositories() {
 //     }
 // }
 
-// //Fetch all issues from github and store in database
-// function fetchAllIssues() {
-//     http:Request req = new;
-//     req.addHeader("Authorization", "token " + AUTH_KEY);
-//     var repositories = retrieveAllReposDetails();
-//     if (repositories is json[]) {
-//         foreach var repository in repositories {
-//             int orgId = <int>repository.ORG_ID;
-//             if (orgId != -1) {
-//                 var organizationName = githubDb->select(GET_ORG_NAME, Organization, orgId);
-//                 string orgName = "";
-//                 if (organizationName is table<Organization>) {
-//                     foreach ( Organization org in organizationName) {
-//                         orgName = org.OrgName;
-//                     }
-//                 } else {
-//                     log:printError("Error occured while retrieving the organization name for the given org Id",
-//                     err = organizationName);
-//                 }
-//                 int repositoryId = <int>repository.REPOSITORY_ID;
-//                 int pageIterator = 1;
-//                 boolean isEmpty = false;
-//                 while (!isEmpty) {
-//                     string reqURL = "/repos/" + <@untainted>orgName + "/" + repository.REPOSITORY_NAME.toString() +
-//                     "/issues?state=all&page=" + pageIterator.toString() + "&per_page=100";
-//                     var response = gitClientEP->get(reqURL, message = req);
-//                     if (response is http:Response) {
-//                         int statusCode = response.statusCode;
-//                         if (statusCode == http:STATUS_OK || statusCode == http:STATUS_MOVED_PERMANENTLY)
-//                         {
-//                             var respJson = response.getJsonPayload();
-//                             if (respJson is json) {
-//                                 json[] repoJson = <json[]>respJson;
-//                                 if (repoJson.length() == 0) {
-//                                     isEmpty = true;
-//                                 } else {
-//                                     storeIntoIssueTable(<json[]>respJson, repositoryId);
-//                                 }
-//                             }
-//                         } else {
-//                             log:printError("Error when calling the github API. StatusCode for the request is " +
-//                             statusCode.toString() + ". " + response.getJsonPayload().toString());
-//                         }
-//                     } else {
-//                         log:printError("Error when calling the backend : " + response.detail().toString());
-//                     }
-//                     pageIterator = pageIterator + 1;
-//                 }
-//             }
-//         }
-//     }
-// }
+
