@@ -29,9 +29,10 @@ type Repository record {
     string repoURL;
 };
 
-// type LastUpdatedDate record {
-//     string date;
-// };
+type LastIssueUpdatedDate record {
+    int repositoryId;
+    string date;
+};
 
 // type IssueCount record {
 //     int count;

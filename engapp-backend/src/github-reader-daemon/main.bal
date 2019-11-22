@@ -44,7 +44,7 @@ listener task:Listener appointment = new (appointmentConfiguration);
 public function main() {
     log:printInfo("==== Starting Github Reader Daemon =====");
     fetchAndStoreAllRepositories();
-    //fetchAndStoreAllIssues();
+    fetchAndStoreAllIssues();
 
     log:printInfo("==== Finishing initial processing =====");
 }
@@ -62,7 +62,43 @@ function fetchAndStoreAllRepositories() {
 
 //Fetch all issues from github from last update time and store in database
 function fetchAndStoreAllIssues() {
-    //Get all organizations
+    //Get all organizations from database
+    map<Organization> organizations = getAllOrganizationsFromDB();
+
+    //Get all repositories from database 
+    map<Repository> repositories;
+    var retVal = getAllRepositoriesFromDB();
+    if (retVal is error) {
+        //We can't continue without repositories 
+        log:printError("Not fetching any issues. No repositories found to fetch issues");
+        return;
+    } else {
+        repositories = retVal;
+    }
+
+    //Get last max updated time of issues per repository
+    map<string> lastUpdateDateOfIssuesPerRepo = getLastUpdateDateOfIssuesPerRepo();
+
+    //Loop through the repo and get the issues
+    map<[int, json[]]> issues = {};
+    foreach Repository repository in repositories {
+        //Get the organization of the repo
+        Organization org;
+        if (!organizations.hasKey(repository.orgId.toString())){
+            //We don't know the organization. Hence, we can't construct the URL
+            continue;
+        } else {
+            org = <Organization> organizations[repository.orgId.toString()];
+        } 
+
+        //Get the last updated date. If it is not there, () is fine. We can get all issues of repo
+        string? lastUdatedDate = lastUpdateDateOfIssuesPerRepo[repository.repositoryId.toString()];
+
+        json[] issuesOfRepo = fetchIssuesOfRepoFromGithub(repository, org, lastUdatedDate);
+        issues[repository.repositoryId.toString()] = [repository.repositoryId, issuesOfRepo];
+    }
+
+    storeIssuesToDB(issues);
 }
 
 

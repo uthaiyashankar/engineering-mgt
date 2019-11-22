@@ -18,36 +18,50 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/config;
 
+function fetchReposOfOrgFromGithub (Organization organization) returns json[]{
+    string reqURL = "/users/" + organization.orgName + "/repos?&per_page=100";
+    return getResponseFromGithub(reqURL, "getting repositories");
+}
 
-http:Client gitClientEP = new ("https://api.github.com",
-config = {
-    followRedirects: {
-        enabled: true,
-        maxCount: 5
+function fetchIssuesOfRepoFromGithub (Repository repository, Organization organization, string? lastUdatedDate) returns json[] {
+    string reqURL = "/repos/" + organization.orgName + "/" + repository.repositoryName.toString() +
+            "/issues?state=all&per_page=100";
+    if (lastUdatedDate is string) {
+        //There is a valid last update time. Hence, we can read only the issues updated after that time
+        reqURL = reqURL + "&since=" + lastUdatedDate;
     }
-});
 
-string AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
+    return getResponseFromGithub(reqURL, "getting issues");
+}
 
-function fetchReposOfOrgFromGithub(Organization organization) returns json[]{
-    //Create the request to send to github. Mainly the authentication key
+function getResponseFromGithub (string url, string actionContext) returns json[] {
+    http:Client gitClientEP = new ("https://api.github.com",
+    config = {
+        followRedirects: {
+            enabled: true,
+            maxCount: 5
+        }
+    });
+
+   //Create the request to send to github. Mainly the authentication key
     http:Request req = new;
-    req.addHeader("Authorization", "token " + AUTH_KEY);
+    req.addHeader("Authorization", "token " + config:getAsString("GITHUB_AUTH_KEY"));
 
     int pageIterator = 0;
-    json[] orgRepos = [];
+    json[] combinedResponseArr = [];
 
     //Repeat until we get last page, which is empty response
     while (true) {
         pageIterator = pageIterator + 1;
-        string reqURL = "/users/" + organization.orgName + "/repos?&page=" + pageIterator.toString() + "&per_page=100";
+        string reqURL = url + "&page=" + pageIterator.toString();
+
         http:Response|error retVal = gitClientEP->get(reqURL, message = req);
         http:Response response;
         
         //Check whether the response is valid
         if (retVal is error) {
             log:printError("Error when calling the github API : " + retVal.detail().toString(), err = retVal);
-            log:printError("[Context] URL = [" + reqURL + "]");
+            log:printError("[Context] Action = [" + actionContext + "], URL = [" + reqURL + "]");
             //Even though it is an error, we are continuing with calling remaining pages
             continue;
         } else {
@@ -59,7 +73,8 @@ function fetchReposOfOrgFromGithub(Organization organization) returns json[]{
         if (statusCode != http:STATUS_OK && statusCode != http:STATUS_MOVED_PERMANENTLY){
             log:printError("Error when calling the github API. StatusCode for the request is " +
                 statusCode.toString() + ". " + response.getJsonPayload().toString());
-            log:printError("[Context] URL = [" + reqURL + "], StatusCode = [" + statusCode.toString() + "]");
+            log:printError("[Context] Action = [" + actionContext + "], URL = [" + reqURL + 
+                "], StatusCode = [" + statusCode.toString() + "]");
             //Even though it is an error, we are continuing with calling remaining pages
             continue;
         }
@@ -68,21 +83,19 @@ function fetchReposOfOrgFromGithub(Organization organization) returns json[]{
         json|error respJson = response.getJsonPayload();
         if (respJson is error) {
             log:printError("Error when calling the github API. Response is not JSON", err = respJson);
-            log:printError("[Context] URL = [" + reqURL + "]");
+            log:printError("[Context] Action = [" + actionContext + "], URL = [" + reqURL + "]");
             //Even though it is an error, we are continuing with calling remaining pages
             continue;
         }
         
-        //All checkes are validated. Process the repositories and store them
-        json[] repoJson = <json[]>respJson;
-        if (repoJson.length() == 0) {
-            //No more repositories to fetch
+        //All checkes are validated. Process the response and store them
+        json[] pageResponseArr = <json[]>respJson;
+        if (pageResponseArr.length() == 0) {
+            //No more issues to fetch
             break;
         } else {
-            // orgRepos.push(repoJson);
-            mergeArrays(orgRepos, repoJson);
+            mergeArrays(combinedResponseArr, pageResponseArr);
         }
     }
-    
-    return orgRepos;
+    return combinedResponseArr;
 }
