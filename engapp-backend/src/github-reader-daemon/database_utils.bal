@@ -1,4 +1,4 @@
-//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -81,7 +81,7 @@ function getAllRepositoriesFromDB() returns map<Repository>? {
 
 
 //Store repositories into the database
-function storeRepositories(map<[int, json[]]> repositories) {
+function storeRepositoriesToDB(map<[int, json[]]> repositories) {
     map<Repository>? retVal = getAllRepositoriesFromDB();
     map<Repository> existingRepos;
     map<Repository> processedRepos = {};
@@ -96,35 +96,33 @@ function storeRepositories(map<[int, json[]]> repositories) {
     //Loop thourgh the new repos and see which should be updated and which should be inserted
     int defaultTeamId = -1;
     foreach [int, json[]] [orgId, repoSet] in repositories {
-        foreach json repoArrays in repoSet {
-            foreach json repository in <json[]>repoArrays {
-                string githubIdOfRepo = repository.id.toString();
-                string repoName = repository.name.toString();
-                string url = repository.html_url.toString();
-                Repository? existingRepo = existingRepos[githubIdOfRepo];
-                if (existingRepo is Repository) {
-                    // we already have this in the database. 
-                    //Remember processed repos of existing repositories. This is to update organization id of non-processed 
-                    // existing repositories to -1
-                    processedRepos[githubIdOfRepo] = existingRepo;
+        foreach json repository in repoSet {
+            string githubIdOfRepo = repository.id.toString();
+            string repoName = repository.name.toString();
+            string url = repository.html_url.toString();
+            Repository? existingRepo = existingRepos[githubIdOfRepo];
+            if (existingRepo is Repository) {
+                // we already have this in the database. 
+                //Remember processed repos of existing repositories. This is to update organization id of non-processed 
+                // existing repositories to -1
+                processedRepos[githubIdOfRepo] = existingRepo;
 
-                    if (repoName != existingRepo.repositoryName || url != existingRepo.repoURL || orgId != existingRepo.orgId) {
-                        //There are some modifications to existing values
-                        var ret = engappDb->update(UPDATE_REPOSITORY, repoName, url, orgId, existingRepo.repositoryId);
-                        if (ret is error){
-                            log:printError("Error in updating repository: RepositoryId = [" + 
-                                existingRepo.repositoryId.toString() + "], RepoURL = [" + url + "]", err = ret);
-                            //Ignore this update and continue
-                        }
-                    }
-                } else {
-                    //This is a new repository. We need to insert
-                    var ret = engappDb->update(INSERT_REPOSITORY, githubIdOfRepo, repoName, orgId, url, defaultTeamId);
+                if (repoName != existingRepo.repositoryName || url != existingRepo.repoURL || orgId != existingRepo.orgId) {
+                    //There are some modifications to existing values
+                    var ret = engappDb->update(UPDATE_REPOSITORY, repoName, url, orgId, existingRepo.repositoryId);
                     if (ret is error){
-                        log:printError("Error in inserting repository: RepositoryGithubId = [" + githubIdOfRepo + 
-                            "], RepoURL = [" + url + "]", err = ret);
-                        //Ignore this insert and continue
+                        log:printError("Error in updating repository: RepositoryId = [" + 
+                            existingRepo.repositoryId.toString() + "], RepoURL = [" + url + "]", err = ret);
+                        //Ignore this update and continue
                     }
+                }
+            } else {
+                //This is a new repository. We need to insert
+                var ret = engappDb->update(INSERT_REPOSITORY, githubIdOfRepo, repoName, orgId, url, defaultTeamId);
+                if (ret is error){
+                    log:printError("Error in inserting repository: RepositoryGithubId = [" + githubIdOfRepo + 
+                        "], RepoURL = [" + url + "]", err = ret);
+                    //Ignore this insert and continue
                 }
             }
         }

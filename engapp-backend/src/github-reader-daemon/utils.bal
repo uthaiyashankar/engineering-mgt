@@ -15,25 +15,8 @@
 // under the License.
 
 
-type Organization record {
-    int id;
-    string githubId;
-    string orgName;
-};
-
-type Repository record {
-    int repositoryId;
-    string githubId;
-    string repositoryName;
-    int orgId;
-    string repoURL;
-    int teamId;
-};
-
-// type LastUpdatedDate record {
-//     string date;
-// };
-
-// type IssueCount record {
-//     int count;
-// };
+function mergeArrays (any[] mergeTo, any[] mergeFrom){
+    foreach var item in mergeFrom {
+        mergeTo.push(item);
+    }
+}

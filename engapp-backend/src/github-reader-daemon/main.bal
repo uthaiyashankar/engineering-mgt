@@ -1,4 +1,4 @@
-//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,27 +14,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
-// import ballerina/io;
+
 import ballerina/log;
 import ballerina/task;
 // import ballerina/time;
 import ballerina/config;
 
-http:Client gitClientEP = new ("https://api.github.com",
-config = {
-    followRedirects: {
-        enabled: true,
-        maxCount: 5
-    }
-});
+
 
 task:AppointmentConfiguration appointmentConfiguration = {
     appointmentDetails: config:getAsString("CRON_EXPRESSION_UPDATE")
 };
 
 listener task:Listener appointment = new (appointmentConfiguration);
-string AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
+
 
 // service appointmentService on appointment {
 //     resource function onTrigger() {
@@ -61,68 +54,13 @@ function fetchAndStoreAllRepositories() {
     Organization[] organizations = getAllOrganizationsFromDB();
     map<[int, json[]]> repositories = {};
     foreach Organization organization in organizations {
-        json[] orgRepos = fetchReposOfOrg(organization);
+        json[] orgRepos = fetchReposOfOrgFromGithub(organization);
         repositories[organization.id.toString()] = [organization.id, orgRepos];
     }
-    storeRepositories(repositories);
+    storeRepositoriesToDB(repositories);
 }
 
-function fetchReposOfOrg(Organization organization) returns json[]{
-    //Create the request to send to github. Mainly the authentication key
-    http:Request req = new;
-    req.addHeader("Authorization", "token " + AUTH_KEY);
 
-    int pageIterator = 0;
-    json[] orgRepos = [];
-
-    //Repeat until we get last page, which is empty response
-    while (true) {
-        pageIterator = pageIterator + 1;
-        string reqURL = "/users/" + organization.orgName + "/repos?&page=" + pageIterator.toString() + "&per_page=100";
-        http:Response|error retVal = gitClientEP->get(reqURL, message = req);
-        http:Response response;
-        
-        //Check whether the response is valid
-        if (retVal is error) {
-            log:printError("Error when calling the github API : " + retVal.detail().toString(), err = retVal);
-            log:printError("[Context] URL = [" + reqURL + "]");
-            //Even though it is an error, we are continuing with calling remaining pages
-            continue;
-        } else {
-            response = retVal;
-        }
-
-        //Check whether the status code is valid
-        int statusCode = response.statusCode;
-        if (statusCode != http:STATUS_OK && statusCode != http:STATUS_MOVED_PERMANENTLY){
-            log:printError("Error when calling the github API. StatusCode for the request is " +
-                statusCode.toString() + ". " + response.getJsonPayload().toString());
-            log:printError("[Context] URL = [" + reqURL + "], StatusCode = [" + statusCode.toString() + "]");
-            //Even though it is an error, we are continuing with calling remaining pages
-            continue;
-        }
-        
-        //Check whether the response contains json payload
-        json|error respJson = response.getJsonPayload();
-        if (respJson is error){
-            log:printError("Error when calling the github API. Response is not JSON", err = respJson);
-            log:printError("[Context] URL = [" + reqURL + "]");
-            //Even though it is an error, we are continuing with calling remaining pages
-            continue;
-        }
-        
-        //All checkes are validated. Process the repositories and store them
-        json[] repoJson = <json[]>respJson;
-        if (repoJson.length() == 0) {
-            //No more repositories to fetch
-            break;
-        } else {
-            orgRepos.push(repoJson);
-        }
-    }
-    
-    return orgRepos;
-}
 
 //Update the issue table
 // function updateIssuesTable() {
