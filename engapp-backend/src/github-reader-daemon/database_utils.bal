@@ -17,8 +17,8 @@
 
 import ballerina/config;
 import ballerinax/java.jdbc;
-import ballerina/jsonutils;
 import ballerina/log;
+import ballerina/time;
 
 jdbc:Client engappDb = new({
         url: config:getAsString("DB_URL"),
@@ -138,27 +138,24 @@ function getLastUpdateDateOfIssuesPerRepo() returns map<string> {
         //Functionality will not fail by returning empty result
     } else {
         foreach LastIssueUpdatedDate item in dbResult {
-            if (item.date != ""){
-                lastUpdateDateOfIssuesPerRepo[item.repositoryId.toString()] = <@untainted>item.date;
-            }
+            lastUpdateDateOfIssuesPerRepo[item.repositoryId.toString()] = <@untainted>time:toString(item.date);
         }
     }
 
     return lastUpdateDateOfIssuesPerRepo;
 }
 
-function getAllIssueIdsFromDB() returns map<int>|error {
-    table<record {}>|error dbResult = engappDb->select(GET_ALL_ISSUE_IDS, ());
+function getAllIssueIdsFromDB() returns map<[int, time:Time]>|error {
+    table<IssueIdsAndUpdateTime>|error dbResult = engappDb->select(GET_ALL_ISSUE_IDS, IssueIdsAndUpdateTime);
 
     if (dbResult is error){
         log:printError("Error occured while retrieving the issue ids from database: ", err = dbResult);
         //we can't continue, since returning empty might result in duplicates
         return <@untainted>dbResult;
     } else {
-        map<int> issueIds = {};
-        json[] issueJsons = <json[]>jsonutils:fromTable(dbResult);
-        foreach json issue in issueJsons {
-            issueIds[issue.GITHUB_ID.toString()] = <int>issue.ISSUE_ID;
+        map<[int, time:Time]> issueIds = {};
+        foreach IssueIdsAndUpdateTime issue in dbResult {
+            issueIds[issue.githubId] = [<int>issue.issueId, issue.updatedTime];
         }
         return <@untainted>issueIds;
     }
@@ -166,8 +163,8 @@ function getAllIssueIdsFromDB() returns map<int>|error {
 
 function storeIssuesToDB(map<[int, Issue[]]> issues) {
     //Get all the issue ids. It is needed to decide whether to update or insert
-    map<int>|error retVal = getAllIssueIdsFromDB();
-    map<int> existingIssueIds;
+    map<[int, time:Time]>|error retVal = getAllIssueIdsFromDB();
+    map<[int, time:Time]> existingIssueIds;
     if (retVal is error) {
         //We can't continue. We might endup creating duplicates
         log:printError("Not storing issue details due to possible duplicate creation");
@@ -189,9 +186,18 @@ function storeIssuesToDB(map<[int, Issue[]]> issues) {
             string assignees = issue.assignees;
             string issueType = issue.issueType;
 
-            int? issueId = existingIssueIds[githubId];
-            if (issueId is int) {
+            [int, time:Time]? existingIssue = existingIssueIds[githubId];
+            if (existingIssue is [int, time:Time]) {
                 // we already have this in the database. 
+                [int, time:Time] [issueId, lastUpdatedTime] = existingIssue;
+
+                //Check whether the last update time is same as current issue time
+                if (time:toString(lastUpdatedTime) == issue.updatedDate){
+                    //Last updated time of the issue is same as what we have in the database
+                    //Hence, no need to udpate it again.  
+                    continue;
+                }
+
                 // We are blindly updating without checking whether the values are changed, since we have read from last updated date. 
                 var  ret = engappDb->update(UPDATE_ISSUES, repositoryId, createdTime, updatedTime, closedTime, createdby,
                     issueType, htmlUrl, labels, assignees, issueId);
@@ -215,87 +221,3 @@ function storeIssuesToDB(map<[int, Issue[]]> issues) {
         }
     }
 }
-
-// //Retrieves repository details from the database
-// function retrieveAllReposDetails() returns json[]? {
-//     var repositories = engappDb->select(RETRIEVE_REPOSITORIES, ());
-//     if (repositories is table<record {}>) {
-//         json repositoriesJson = jsonutils:fromTable(repositories);
-//         return <json[]>repositoriesJson;
-//     } else {
-//         log:printError("Error occured while retrieving the repository details: ", err = repositories);
-//     }
-// }
-    
-//                         
-//                         string lastUpdated = "";
-//                         if (lastupdatedDate is table<LastUpdatedDate>) {
-//                             if (lastupdatedDate.toString() != "") {
-//                                 foreach ( LastUpdatedDate updatedDate in lastupdatedDate) {
-//                                     io:println(updatedDate.toString());
-//                                     lastUpdated = updatedDate.date;
-//                                 }
-//                             } else {
-//                                 lastupdatedDate.close();
-//                                 time:Time time = time:currentTime();
-//                                 time = time:subtractDuration(time, 0, 0, 1, 0, 0, 0, 0);
-//                                 lastUpdated = time:toString(time);
-//                                 io:println("hello outside");
-//                                 io:println(lastUpdated);
-//                             }
-//                         } 
-
-
-
-
-
-
-
-
-// //Checks whether given issue is exists or not
-// function isIssueExist (string issue_id) returns boolean {
-//     var issue = engappDb->select(ISSUE_EXISTS, (), issue_id);
-//     if (issue is table<record {}>) {
-//         json issueJson = jsonutils:fromTable(issue);
-//         if(issueJson.toString() != ""){
-//             return true;
-//         }
-//     } else {
-//         log:printError("Error occured while checking the existence of an issue", err = issue);
-//     }
-//     return false;
-// }
-
-// function handleUpdate(jdbc:UpdateResult|jdbc:Error status, string message) {
-//     if (status is jdbc:UpdateResult) {
-//            log:printInfo(message);
-//     }
-//     else {
-//         log:printError("Failed to update the tables: " , status);
-//     }
-// }
-
-// function InsertIssueCountDetails() {
-//     var openIssueCount = engappDb->select(RETRIEVE_OPEN_ISSUE_COUNT, IssueCount);
-//     var closedIssueCount = engappDb->select(RETRIEVE_CLOSED_ISSUE_COUNT, IssueCount);
-//     int openIssue = 0;
-//     int closedIssue = 0;
-//     if (openIssueCount is table<IssueCount>) {
-//         foreach ( IssueCount issueCount in openIssueCount) {
-//             openIssue = <int>issueCount.count;
-//         }
-//     } else {
-//         log:printError("Error occured while insering the open issues count details for each day to the Database",
-//         err = openIssueCount);
-//     }
-//     if (closedIssueCount is table<IssueCount>) {
-//         foreach ( IssueCount issueCount in closedIssueCount) {
-//             closedIssue = <int>issueCount.count;
-//         }
-//     } else {
-//         log:printError("Error occured while insering the closed issues count details for each day to the Database",
-//         err = closedIssueCount);
-//     }
-//     var ret = engappDb->update(INSERT_ISSUE_COUNT, openIssue, closedIssue);
-//     handleUpdate(ret, "Inserted Issue count details with variable parameters");
-// }

@@ -9,15 +9,13 @@ INSERT INTO `ENGAPP_GITHUB_ORGANIZATIONS` VALUES
 (6, '-1', 'ballerinax'),
 (7, '-1', 'siddhi-io'),
 (8, '-1', 'wso2-cellery'), 
-(9, '-1', 'wso2-incubator'),
-(10, '-1', 'wso2-attic'),
-(11, '-1', 'wso2-enterprise');
+(9, '-1', 'wso2-enterprise');
 
 INSERT INTO `ENGAPP_TEAMS` VALUES 
 (-1, 'Unknown', 'Unknown', 'Other'),
 (1, 'API Manager', 'APIM', 'Product'),
 (2, 'Integration', 'EI', 'Product'),
-(3, 'Identitiy and Access Management', 'IAM', 'Product'),
+(3, 'Identitiy & Access Management', 'IAM', 'Product'),
 (4, 'Open Banking', 'OB', 'Product'),
 (5, 'Installation Experience', 'IE', 'Other'),
 (6, 'Cellery', 'Cellery', 'OSS'),

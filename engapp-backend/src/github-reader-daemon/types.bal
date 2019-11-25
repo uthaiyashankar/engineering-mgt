@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/time;
 
 type Organization record {
     int id;
@@ -45,9 +46,11 @@ type Issue record {
 
 type LastIssueUpdatedDate record {
     int repositoryId;
-    string date;
+    time:Time date;
 };
 
-// type IssueCount record {
-//     int count;
-// };
+type IssueIdsAndUpdateTime record {
+    int issueId;
+    string githubId;
+    time:Time updatedTime;
+};

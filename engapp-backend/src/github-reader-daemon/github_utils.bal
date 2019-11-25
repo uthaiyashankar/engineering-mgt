@@ -18,6 +18,17 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/config;
 
+http:Client gitClientEP = new ("https://api.github.com",
+    config = {
+        followRedirects: {
+            enabled: true,
+            maxCount: 5
+        }
+    }
+);
+
+
+
 function fetchReposOfOrgFromGithub (Organization organization) returns Repository[]{
     string reqURL = "/users/" + organization.orgName + "/repos?&per_page=100";
     boolean continueOnError = true; //We can still load repositories later
@@ -86,14 +97,6 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
 }
 
 function getResponseFromGithub (string url, string actionContext, boolean continueOnError) returns json[] {
-    http:Client gitClientEP = new ("https://api.github.com",
-    config = {
-        followRedirects: {
-            enabled: true,
-            maxCount: 5
-        }
-    });
-
    //Create the request to send to github. Mainly the authentication key
     http:Request req = new;
     req.addHeader("Authorization", "token " + config:getAsString("GITHUB_AUTH_KEY"));
@@ -109,6 +112,7 @@ function getResponseFromGithub (string url, string actionContext, boolean contin
         http:Response|error retVal = gitClientEP->get(reqURL, message = req);
         http:Response response = new; //initialized to avoid compiler warning due to nested loops
         
+
         //Check whether the response is valid
         if (retVal is error) {
             log:printError("Error when calling the github API : " + retVal.detail().toString(), err = retVal);
@@ -139,7 +143,7 @@ function getResponseFromGithub (string url, string actionContext, boolean contin
                 return [];
             }
         }
-        
+
         //Check whether the response contains json payload
         json|error respJson = response.getJsonPayload();
         if (respJson is error) {
@@ -153,7 +157,7 @@ function getResponseFromGithub (string url, string actionContext, boolean contin
                 return [];
             }
         }
-        
+
         //All checkes are validated. Process the response and store them
         json[] pageResponseArr = <json[]>respJson;
         if (pageResponseArr.length() == 0) {
