@@ -1,3 +1,0 @@
-
-INSERT INTO `ENGAPP_GITHUB_ORGANIZATIONS` VALUES (1,'533043','wso2'),(2,'17171218','wso2-extensions'),(3,'34733518','ballerina-platform'),(4,'36032949','ballerina-guides'),(5,'35947277','wso2-ballerina'),(6,'36918038','ballerinax'),(7,'47411758','siddhi-io'),(8,'45487184','wso2-cellery');
-INSERT INTO `ENGAPP_TEAMS` VALUES (1,'API Manager','APIM'),(2,'Open Banking','OB'),(3,'Installation Experience', 'IE'),(4,'Integration','EI'),(5,'Identitiy and Access Management','IAM'),(6,'Cellery','Cellery'),(7,'Analytics','Analytics'),(8,'Choreo','Choreo'),(9,'Cloud','Cloud'),(12,'Ballerina','Ballerina'),(100,'Unknown','Unknown');

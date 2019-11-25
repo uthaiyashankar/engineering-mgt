@@ -1,4 +1,4 @@
-//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,224 +14,80 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
-import ballerina/io;
 import ballerina/log;
 import ballerina/task;
-import ballerina/time;
-
-
-http:Client gitClientEP = new ("https://api.github.com",
-config = {
-    followRedirects: {
-        enabled: true,
-        maxCount: 5
-    }
-});
+import ballerina/config;
 
 task:AppointmentConfiguration appointmentConfiguration = {
-    appointmentDetails: CRON_EXPRESSION
+    appointmentDetails: config:getAsString("CRON_EXPRESSION_UPDATE")
 };
 
 listener task:Listener appointment = new (appointmentConfiguration);
 
-
 service appointmentService on appointment {
     resource function onTrigger() {
-        updateReposTable();
-        log:printInfo("Repo table is updated");
-        updateIssuesTable();
-        log:printInfo("Issue table is updated");
-        InsertIssueCountDetails();
+        processData();
     }
 }
-
-type Organization record {
-    string OrgName;
-};
-
-type LastUpdatedDate record {
-    string date;
-};
 
 public function main() {
-    updateReposTable();
-    getAllIssues();
+    processData();
 }
 
-//Update the repository table
-function updateReposTable() {
-    http:Request req = new;
-    req.addHeader("Authorization", "token " + AUTH_KEY);
-    int orgIterator = 0;
-    var organizations = retrieveAllOrganizations();
-    if (organizations is json[]) {
-        foreach var organization in organizations {
-            int pageIterator = 1;
-            json[] orgRepos = [];
-            boolean isEmpty = false;
-            while (!isEmpty) {
-                string reqURL = "/users/" + organization.ORG_NAME.toString() + "/repos?&page=" + pageIterator.toString() + "&per_page=100";
-                io:println(reqURL);
-                var response = gitClientEP->get(reqURL, message = req);
-                if (response is http:Response) {
-                    int statusCode = response.statusCode;
-                    if (statusCode == http:STATUS_OK || statusCode == http:STATUS_MOVED_PERMANENTLY)
-                    {
-                        var respJson = response.getJsonPayload();
-                        if (respJson is json) {
-                            json[] repoJson = <json[]>respJson;
-                            if (repoJson.length() == 0) {
-                                isEmpty = true;
-                                io:println(respJson.toString());
-                            } else {
-                                orgRepos.push(repoJson);
-                                io:println(orgRepos.length());
-                                storeIntoReposTable(repoJson, <int>organization.ORG_ID);
-                            }
-                            io:println(isEmpty);
-                        }
-                    } else {
-                        log:printError("Error when calling the github API. StatusCode for the request is " +
-                        statusCode.toString() + ". " + response.getJsonPayload().toString());
-                    }
-                } else {
-                    log:printError("Error when calling the backend : " + response.detail().toString());
-                }
-                pageIterator = pageIterator + 1;
-            }
-            updateOrgId(orgRepos, <int>organization.ORG_ID);
-        }
+public function processData() {
+    log:printInfo("==== Starting Github Reader Daemon =====");
+    fetchAndStoreAllRepositories();
+    fetchAndStoreAllIssues();
+    log:printInfo("==== Finished processing =====");
+}
+
+//Fetch repositories from github and store in database
+function fetchAndStoreAllRepositories() {
+    map<Organization> organizations = getAllOrganizationsFromDB();
+    map<[int, Repository[]]> repositories = {};
+    foreach Organization organization in organizations {
+        Repository[] orgRepos = fetchReposOfOrgFromGithub(organization);
+        repositories[organization.id.toString()] = [organization.id, orgRepos];
+    }
+    storeRepositoriesToDB(repositories);
+}
+
+//Fetch all issues from github from last update time and store in database
+function fetchAndStoreAllIssues() {
+    //Get all organizations from database
+    map<Organization> organizations = getAllOrganizationsFromDB();
+
+    //Get all repositories from database 
+    map<Repository> repositories;
+    var retVal = getAllRepositoriesFromDB();
+    if (retVal is error) {
+        //We can't continue without repositories 
+        log:printError("Not fetching any issues. No repositories found to fetch issues");
+        return;
     } else {
-        log:printError("Returned is not a json. Error occured while retrieving the organization details",
-        err = organizations);
+        repositories = retVal;
     }
-}
 
-//Update the issue table
-function updateIssuesTable() {
-    http:Request req = new;
-    req.addHeader("Authorization", "token " + AUTH_KEY);
-    var organizations = retrieveAllOrganizations();
-    if (organizations is json[]) {
-        foreach var organization in organizations {
-            var repositoryJson = retrieveAllRepos(<int>organization.ORG_ID);
-            if (repositoryJson is json[]) {
+    //Get last max updated time of issues per repository
+    map<string> lastUpdateDateOfIssuesPerRepo = getLastUpdateDateOfIssuesPerRepo();
 
-                if (<int>organization.ORG_ID != -1) {
-                    foreach var uuid in repositoryJson {
-                        int pageIterator = 1;
-                        boolean isEmpty = false;
-                        var repositoryId = uuid.REPOSITORY_ID.toString();
-                        var lastupdatedDate = githubDb->select(GET_UPDATED_DATE, LastUpdatedDate, repositoryId);
-                        string lastUpdated = "";
-                        if (lastupdatedDate is table<LastUpdatedDate>) {
-                            if (lastupdatedDate.toString() != "") {
-                                foreach ( LastUpdatedDate updatedDate in lastupdatedDate) {
-                                    io:println(updatedDate.toString());
-                                    lastUpdated = updatedDate.date;
-                                }
-                            } else {
-                                lastupdatedDate.close();
-                                time:Time time = time:currentTime();
-                                time = time:subtractDuration(time, 0, 0, 1, 0, 0, 0, 0);
-                                lastUpdated = time:toString(time);
-                                io:println("hello outside");
-                                io:println(lastUpdated);
-                            }
-                        } else {
-                            log:printError("Error occured while retrieving the last updated date : ", err = lastupdatedDate);
-                        }
-                        while (!isEmpty) {
-                            string reqURL = "/repos/" + organization.ORG_NAME.toString() + "/" +
-                            uuid.REPOSITORY_NAME.toString() + "/issues?since=" + <@untainted>lastUpdated + "&state=all&page=" + pageIterator.toString() + "&per_page=100";
-                            io:println(reqURL);
-                            var response = gitClientEP->get(reqURL, message = req);
-                            if (response is http:Response) {
-                                int statusCode = response.statusCode;
-                                if (statusCode == http:STATUS_OK || statusCode == http:STATUS_MOVED_PERMANENTLY)
-                                {
-                                    var respJson = response.getJsonPayload();
-                                    if (respJson is json) {
-                                        json[] repoJson = <json[]>respJson;
-                                        if (repoJson.length() == 0) {
-                                            io:println("lastupdatedDate empty true", lastupdatedDate);
-                                            isEmpty = true;
-                                        } else {
-                                            io:println("lastupdatedDate is updating", lastupdatedDate);
-                                            storeIntoIssueTable(<json[]>respJson, <int>uuid.REPOSITORY_ID);
-                                        }
-                                    }
-                                } else {
-                                    log:printError("Error when calling the github API. StatusCode for the request is " +
-                                    statusCode.toString() + ". " + response.getJsonPayload().toString());
-                                }
-                            } else {
-                                log:printError("Error when calling backend : " + response.detail().toString());
-                            }
-                            pageIterator = pageIterator + 1;
-                        }
-                    }
-                }
-            } else {
-                log:printError("Returned is not a json. Error occured while retrieving repository details: ",
-                err = repositoryJson);
-            }
-        }
-    } else {
-        log:printError("Error occured while retrieving organization details", err = organizations);
+    //Loop through the repo and get the issues
+    map<[int, Issue[]]> issues = {};
+    foreach Repository repository in repositories {
+        //Get the organization of the repo
+        Organization org;
+        if (!organizations.hasKey(repository.orgId.toString())){
+            //We don't know the organization. Hence, we can't construct the URL
+            continue;
+        } else {
+            org = <Organization> organizations[repository.orgId.toString()];
+        } 
+
+        //Get the last updated date. If it is not there, () is fine. We can get all issues of repo
+        string? lastUdatedDate = lastUpdateDateOfIssuesPerRepo[repository.repositoryId.toString()];
+        Issue[] issuesOfRepo = fetchIssuesOfRepoFromGithub(repository, org, lastUdatedDate);
+        issues[repository.repositoryId.toString()] = [repository.repositoryId, issuesOfRepo];
     }
-}
 
-//Inserts the issues for the first time
-function getAllIssues() {
-    http:Request req = new;
-    req.addHeader("Authorization", "token " + AUTH_KEY);
-    var repositories = retrieveAllReposDetails();
-    if (repositories is json[]) {
-        foreach var repository in repositories {
-            int orgId = <int>repository.ORG_ID;
-            if (orgId != -1) {
-                var organizationName = githubDb->select(GET_ORG_NAME, Organization, orgId);
-                string orgName = "";
-                if (organizationName is table<Organization>) {
-                    foreach ( Organization org in organizationName) {
-                        orgName = org.OrgName;
-                    }
-                } else {
-                    log:printError("Error occured while retrieving the organization name for the given org Id",
-                    err = organizationName);
-                }
-                int repositoryId = <int>repository.REPOSITORY_ID;
-                int pageIterator = 1;
-                boolean isEmpty = false;
-                while (!isEmpty) {
-                    string reqURL = "/repos/" + <@untainted>orgName + "/" + repository.REPOSITORY_NAME.toString() +
-                    "/issues?state=all&page=" + pageIterator.toString() + "&per_page=100";
-                    var response = gitClientEP->get(reqURL, message = req);
-                    if (response is http:Response) {
-                        int statusCode = response.statusCode;
-                        if (statusCode == http:STATUS_OK || statusCode == http:STATUS_MOVED_PERMANENTLY)
-                        {
-                            var respJson = response.getJsonPayload();
-                            if (respJson is json) {
-                                json[] repoJson = <json[]>respJson;
-                                if (repoJson.length() == 0) {
-                                    isEmpty = true;
-                                } else {
-                                    storeIntoIssueTable(<json[]>respJson, repositoryId);
-                                }
-                            }
-                        } else {
-                            log:printError("Error when calling the github API. StatusCode for the request is " +
-                            statusCode.toString() + ". " + response.getJsonPayload().toString());
-                        }
-                    } else {
-                        log:printError("Error when calling the backend : " + response.detail().toString());
-                    }
-                    pageIterator = pageIterator + 1;
-                }
-            }
-        }
-    }
+    storeIssuesToDB(issues);
 }

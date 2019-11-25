@@ -114,8 +114,8 @@ function getDetailsOfIssue() returns json[] {
         }
     }
     else {
-        log:printError("Returned value is not a json. Error occured while retrieving the team details
-                                                from Database", err = teamJson);
+        log:printError("Returned value is not a json. Error occured while retrieving the team details from Database", 
+            err = teamJson);
     }
     return teamIssues;
 }
@@ -224,8 +224,8 @@ function openIssuesAgingForTeam() returns json[] {
                     }
                 }
             } else {
-                log:printError("Returned value is not a json. Error occured while retrieving the issue details
-                            from Database", err = totalIssueCount);
+                log:printError("Returned value is not a json. Error occured while retrieving the issue details from Database", 
+                    err = totalIssueCount);
             }
             json teamData = {
                 name: team_name,
@@ -235,8 +235,8 @@ function openIssuesAgingForTeam() returns json[] {
             data.push(teamData);
         }
     } else {
-        log:printError("Returned value is not a json. Error occured while retrieving the teams aging details
-                            to the Database", err = teams);
+        log:printError("Returned value is not a json. Error occured while retrieving the teams aging details to the Database", 
+            err = teams);
     }
 
 

@@ -1,4 +1,4 @@
-//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -17,228 +17,207 @@
 
 import ballerina/config;
 import ballerinax/java.jdbc;
-import ballerina/jsonutils;
 import ballerina/log;
+import ballerina/time;
 
-jdbc:Client githubDb = new({
+jdbc:Client engappDb = new({
         url: config:getAsString("DB_URL"),
         username: config:getAsString("DB_USERNAME"),
         password: config:getAsString("DB_PASSWORD"),
         dbOptions: { useSSL: false }
     });
 
-type IssueCount record {
-    int count;
-};
+int unknownOrgId = -1;
+
+
 //Retrieves organization details from the database
-function retrieveAllOrganizations() returns json[]? {
-    var organizations = githubDb->select(RETRIEVE_ORGANIZATIONS, ());
-    if (organizations is table<record {}>) {
-        json organizationJson = jsonutils:fromTable(organizations);
-            return <json[]>organizationJson;
+function getAllOrganizationsFromDB() returns map<Organization> {
+    map<Organization> existingOrgs = {};
+    var organizations = engappDb->select(GET_ALL_ORGANIZATIONS, Organization);
+    if (organizations is table<Organization>) {
+        foreach Organization org in organizations {
+            if (org.id != unknownOrgId){
+                //Nothing to untaint at this stage
+                existingOrgs[org.id.toString()] = <@untainted> org;
+            }
+        }
     } else {
-        log:printError("Error occured while retrieving the organization details: ",
-        err = organizations);
+        log:printError("Error occured while retrieving the organization details from database: ", err = organizations);
     }
+
+    return existingOrgs;
 }
 
-//Retrieves repository details from the database
-function retrieveAllReposDetails() returns json[]? {
-    var repositories = githubDb->select(RETRIEVE_REPOSITORIES, ());
-    if (repositories is table<record {}>) {
-        json repositoriesJson = jsonutils:fromTable(repositories);
-        return <json[]>repositoriesJson;
+//Get all existing repository details from the database
+function getAllRepositoriesFromDB() returns map<Repository>|error {
+    table<Repository>|error dbResult = engappDb->select(GET_ALL_REPOSITORIES, Repository);
+
+    if (dbResult is error){
+        log:printError("Error occured while retrieving the repositories from database: ", err = dbResult);
+        return <@untainted> dbResult;
     } else {
-        log:printError("Error occured while retrieving the repository details: ", err = repositories);
-    }
+        map<Repository> existingRepos = {};
+        foreach Repository repository in dbResult {
+            existingRepos[repository.githubId] = repository;
+        }
+        //Nothing to untaint
+        return <@untainted> existingRepos;
+    }    
 }
 
-//Retrieves repository details from the database for a given Organization Id
-function retrieveAllRepos(int orgId) returns json[]? {
-    var repositories = githubDb->select(RETRIEVE_REPOSITORIES_BY_ORG_ID, () , orgId);
-    if (repositories is table<record {}>) {
-        json repositoriesJson = jsonutils:fromTable(repositories);
-            return <json[]>repositoriesJson;
+
+//Store repositories into the database
+function storeRepositoriesToDB(map<[int, Repository[]]> repositories) {
+    map<Repository>|error retVal = getAllRepositoriesFromDB();
+    map<Repository> existingRepos;
+    map<Repository> processedRepos = {};
+    if (retVal is error) {
+        //We can't continue to store, since we might create duplicate here. 
+        log:printError("Not storing repository details due to possible duplicate creation");
+        return;
     } else {
-        log:printError("Error occured while retrieving the repository details for a given org Id: ",
-        err = repositories);
+        existingRepos = retVal;
     }
-}
 
-//Get issue labels for an issue
-function getIssueLabels(json[] issueLabels) returns string {
-    int numOfLabels = issueLabels.length();
-    string labels = "";
-    int i=1;
-    foreach var label in issueLabels {
+    //Loop thourgh the new repos and see which should be updated and which should be inserted
+    foreach [int, Repository[]] [orgId, repositoriesOfOrg] in repositories {
+        foreach Repository repository in repositoriesOfOrg {
+            string githubIdOfRepo = repository.githubId;
+            string repoName = repository.repositoryName;
+            string url = repository.repoURL;
+            Repository? existingRepo = existingRepos[githubIdOfRepo];
+            if (existingRepo is Repository) {
+                //we already have this in the database. 
+                //Remember processed repos of existing repositories. This is to update organization id of non-processed 
+                //existing repositories to -1
+                processedRepos[githubIdOfRepo] = existingRepo;
 
-        if(numOfLabels == i){
-        labels = labels + label.name.toString() ;
-        }
-        else{
-        labels = labels + label.name.toString() + ",";
-        i = i+1;
-        }
-    }
-    return labels;
-}
-
-//Get issue assignees for an issue
-function getIssueAssignees(json[] issueAssignees) returns string {
-    int numOfAssignees = issueAssignees.length();
-    string assignees = "";
-    int i=1;
-    foreach var assignee in issueAssignees {
-        if(numOfAssignees == i)
-        {
-        assignees = assignees + assignee.login.toString();
-        }
-        else{
-        assignees = assignees + assignee.login.toString() + ",";
-        i = i+1;
-        }
-    }
-    return assignees;
-}
-
-//Updates the repository table
-function storeIntoReposTable(json[] response, int orgId) {
-     map<json> existingRepos = {};
-         var repoJson = retrieveAllRepos(orgId);
-         if (repoJson is json[]) {
-             foreach json uuid in repoJson {
-                 existingRepos[uuid.GITHUB_ID.toString()] = uuid;
-             }
-         } else {
-     	    log:printError("Returned is not a json. Error occured while retrieving  the repository details: ",
-     	    err = repoJson);
-         }
-         foreach var repository in response {
-             string gitUuid = repository.id.toString();
-             string repoName = repository.name.toString();
-             string url = repository.html_url.toString();
-             int teamId = 100;
-             if (existingRepos.hasKey(repository.id.toString())) {
-                  if (repoName != existingRepos[gitUuid].REPOSITORY_NAME || url != existingRepos[gitUuid].URL) {
-                     var ret = githubDb->update(UPDATE_REPOSITORIES, repoName, url, gitUuid);
-                     handleUpdate(ret, "Updated the repository details with variable parameters");
-                 }
-             } else {
-                 var ret = githubDb->update(INSERT_REPOSITORIES,
-                 gitUuid, repoName, orgId, url, teamId);
-                 handleUpdate(ret, "Inserted repository details with variable parameters");
-             }
-     	}
-     }
-
-
-//Update to the repo table
-function storeIntoIssueTable(json[] response, int repositoryId) {
-    int repoIterator = 0;
-    string types;
-    foreach var repository in response {
-        jdbc:Parameter createdTime = { sqlType: jdbc:TYPE_DATETIME, value: repository.created_at.toString()};
-        jdbc:Parameter updatedTime = { sqlType: jdbc:TYPE_DATETIME, value: repository.updated_at.toString()};
-        jdbc:Parameter closedTime = { sqlType: jdbc:TYPE_DATETIME, value: repository.closed_at.toString()};
-        string htmlUrl = repository.html_url.toString();
-        string githubId = repository.id.toString();
-        var issueLabels = repository.labels;
-        string labels = "";
-        if (issueLabels is json)
-        {
-            labels = getIssueLabels(<json[]>issueLabels);
-        }
-        var issueAssignee = response[repoIterator].assignees;
-        string assignees = "";
-        if (issueAssignee is json)
-        {
-            assignees = getIssueAssignees(<json[]>issueAssignee);
-        }
-        int? index = htmlUrl.indexOf("pull");
-        types = (index is int) ? "PR" : "ISSUE";
-        string createdby = repository.user.login.toString();
-        if(isIssueExist(githubId)) {
-           var  ret = githubDb->update(UPDATE_ISSUES, repositoryId, createdTime, updatedTime, closedTime, createdby,
-            types,htmlUrl, labels, assignees, githubId);
-           handleUpdate(ret, "Updated the issue details with variable parameters");
-        } else {
-            var ret = githubDb->update(INSERT_ISSUES, githubId, repositoryId, createdTime, updatedTime, closedTime,
-            createdby, types, htmlUrl, labels, assignees);
-            handleUpdate(ret, "Inserted the issue details with variable parameters");
-        }
-    }
-}
-
-//Update the Org Id as -1 if that repository is no more in that organization
-function updateOrgId (json[] repoJson, int orgId) {
-    int id =-1;
-    var repoJsons =retrieveAllRepos(orgId);
-    if(repoJsons is json[]) {
-        foreach var uuid in repoJsons {
-            boolean exists = false;
-            foreach json repositoryset in repoJson {
-                json[] reposet = <json[]> repositoryset;
-                foreach var repository in reposet {
-                    if(uuid.GITHUB_ID.toString() == repository.id.toString()) {
-                        exists = true;
-                        break;
+                if (repoName != existingRepo.repositoryName || url != existingRepo.repoURL || orgId != existingRepo.orgId) {
+                    //There are some modifications to existing values
+                    var ret = engappDb->update(UPDATE_REPOSITORY, repoName, url, orgId, existingRepo.repositoryId);
+                    if (ret is error){
+                        log:printError("Error in updating repository: RepositoryId = [" + 
+                            existingRepo.repositoryId.toString() + "], RepoURL = [" + url + "]", err = ret);
+                        //Ignore this update and continue
                     }
                 }
+            } else {
+                //This is a new repository. We need to insert
+                var ret = engappDb->update(INSERT_REPOSITORY, githubIdOfRepo, repoName, orgId, url);
+                if (ret is error){
+                    log:printError("Error in inserting repository: RepositoryGithubId = [" + githubIdOfRepo + 
+                        "], RepoURL = [" + url + "]", err = ret);
+                    //Ignore this insert and continue
+                }
             }
-            if(!exists) {
-                var ret = githubDb->update(UPDATE_ORGID, id, uuid.GITHUB_ID.toString());
-                handleUpdate(ret, "Updated the org id for the repository with variable parameters");
+        }
+    }
+
+    //Now go through existing repositories and updte the organizationId to -1 if it is not processed
+    foreach Repository existingRepo in existingRepos {
+        if (!processedRepos.hasKey(existingRepo.githubId)){
+            //This repo is not processed. Hence should be deleted or moved to some other organization. 
+            //Hence, update the orgId to -1
+            var ret = engappDb->update(UPDATE_REPOSITORY, existingRepo.repositoryName, existingRepo.repoURL, 
+                unknownOrgId, existingRepo.repositoryId);
+            if (ret is error){
+                log:printError("Error in updating repository: RepositoryId = [" + 
+                    existingRepo.repositoryId.toString() + "], RepoURL = [" + existingRepo.repoURL + "]", err = ret);
+                //Ignore this update and continue
+            }            
+        }
+    }
+}
+
+function getLastUpdateDateOfIssuesPerRepo() returns map<string> {
+    table<LastIssueUpdatedDate>|error dbResult = engappDb->select(GET_LAST_ISSUE_UPDATED_DATE, LastIssueUpdatedDate);
+    map<string> lastUpdateDateOfIssuesPerRepo = {};
+    if (dbResult is error){
+        log:printError("Error occured while retrieving the last updated issue date from database: ", err = dbResult);
+        //It is ok to return empty map. Worst case, we will read all issues and update. 
+        //Functionality will not fail by returning empty result
+    } else {
+        foreach LastIssueUpdatedDate item in dbResult {
+            lastUpdateDateOfIssuesPerRepo[item.repositoryId.toString()] = <@untainted>time:toString(item.date);
+        }
+    }
+
+    return lastUpdateDateOfIssuesPerRepo;
+}
+
+function getAllIssueIdsFromDB() returns map<[int, time:Time]>|error {
+    table<IssueIdsAndUpdateTime>|error dbResult = engappDb->select(GET_ALL_ISSUE_IDS, IssueIdsAndUpdateTime);
+
+    if (dbResult is error){
+        log:printError("Error occured while retrieving the issue ids from database: ", err = dbResult);
+        //we can't continue, since returning empty might result in duplicates
+        return <@untainted>dbResult;
+    } else {
+        map<[int, time:Time]> issueIds = {};
+        foreach IssueIdsAndUpdateTime issue in dbResult {
+            issueIds[issue.githubId] = [<int>issue.issueId, issue.updatedTime];
+        }
+        return <@untainted>issueIds;
+    }
+}
+
+function storeIssuesToDB(map<[int, Issue[]]> issues) {
+    //Get all the issue ids. It is needed to decide whether to update or insert
+    map<[int, time:Time]>|error retVal = getAllIssueIdsFromDB();
+    map<[int, time:Time]> existingIssueIds;
+    if (retVal is error) {
+        //We can't continue. We might endup creating duplicates
+        log:printError("Not storing issue details due to possible duplicate creation");
+        return;
+    } else {
+        existingIssueIds = retVal;
+    }
+
+    //Loop through the issues from github and store them to database
+    foreach [int, Issue[]] [repositoryId, issuesOfRepo] in issues {
+        foreach Issue issue in issuesOfRepo {
+            jdbc:Parameter createdTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.createdDate};
+            jdbc:Parameter updatedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.updatedDate};
+            jdbc:Parameter closedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.closedDate};
+            string htmlUrl = issue.issueURL;
+            string githubId = issue.githubId;
+            string createdby = issue.createdBy;
+            string labels = issue.labels;
+            string assignees = issue.assignees;
+            string issueType = issue.issueType;
+
+            [int, time:Time]? existingIssue = existingIssueIds[githubId];
+            if (existingIssue is [int, time:Time]) {
+                // we already have this in the database. 
+                [int, time:Time] [issueId, lastUpdatedTime] = existingIssue;
+
+                //Check whether the last update time is same as current issue time
+                if (time:toString(lastUpdatedTime) == issue.updatedDate){
+                    //Last updated time of the issue is same as what we have in the database
+                    //Hence, no need to udpate it again.  
+                    continue;
+                }
+
+                // We are blindly updating without checking whether the values are changed, since we have read from last updated date. 
+                var  ret = engappDb->update(UPDATE_ISSUES, repositoryId, createdTime, updatedTime, closedTime, createdby,
+                    issueType, htmlUrl, labels, assignees, issueId);
+   
+                if (ret is error){
+                    log:printError("Error in updating issues: issueId = [" + 
+                        issueId.toString() + "], issueURL = [" + htmlUrl + "]", err = ret);
+                    //Ignore this update and continue
+                }
+            } else {
+                //This is a new issue. We need to insert
+                var ret = engappDb->update(INSERT_ISSUES, githubId, repositoryId, createdTime, updatedTime, closedTime,
+                    createdby, issueType, htmlUrl, labels, assignees);
+                if (ret is error){
+                    log:printError("Error in inserting issue: issueGithubId = [" + githubId + 
+                        "], issueURL = [" + htmlUrl + "]", err = ret);
+                    log:printError ("Assignees [" + assignees + "]");
+                    //Ignore this insert and continue
+                }
             }
         }
-    } else {
-        log:printError("Error occured while updating the organization id to the repository", err = repoJsons);
     }
-}
-
-//Checks whether given issue is exists or not
-function isIssueExist (string issue_id) returns boolean {
-    var issue = githubDb->select(ISSUE_EXISTS,(),issue_id);
-    if (issue is table<record {}>) {
-        json issueJson = jsonutils:fromTable(issue);
-        if(issueJson.toString() != ""){
-            return true;
-        }
-    } else {
-        log:printError("Error occured while checking the existence of an issue", err = issue);
-    }
-    return false;
-}
-
-function handleUpdate(jdbc:UpdateResult|jdbc:Error status, string message) {
-    if (status is jdbc:UpdateResult) {
-           log:printInfo(message);
-    }
-    else {
-        log:printError("Failed to update the tables: " , status);
-    }
-}
-
-function InsertIssueCountDetails() {
-    var openIssueCount = githubDb->select(RETRIEVE_OPEN_ISSUE_COUNT, IssueCount);
-    var closedIssueCount = githubDb->select(RETRIEVE_CLOSED_ISSUE_COUNT, IssueCount);
-    int openIssue = 0;
-    int closedIssue = 0;
-    if (openIssueCount is table<IssueCount>) {
-        foreach ( IssueCount issueCount in openIssueCount) {
-            openIssue = <int>issueCount.count;
-        }
-    } else {
-        log:printError("Error occured while insering the open issues count details for each day to the Database",
-        err = openIssueCount);
-    }
-    if (closedIssueCount is table<IssueCount>) {
-        foreach ( IssueCount issueCount in closedIssueCount) {
-            closedIssue = <int>issueCount.count;
-        }
-    } else {
-        log:printError("Error occured while insering the closed issues count details for each day to the Database",
-        err = closedIssueCount);
-    }
-    var ret = githubDb->update(INSERT_ISSUE_COUNT, openIssue, closedIssue);
-    handleUpdate(ret, "Inserted Issue count details with variable parameters");
 }
