@@ -25,9 +25,10 @@ type Organization record {
 type Repository record {
     int repositoryId;
     string githubId;
-    string repositoryName;
+    string repoName;
     int orgId;
     string repoURL;
+    string repoType;
 };
 
 type Issue record {

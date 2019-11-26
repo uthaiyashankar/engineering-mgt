@@ -17,6 +17,7 @@
 import ballerina/log;
 import ballerina/task;
 import ballerina/config;
+import ballerina/time;
 
 task:AppointmentConfiguration appointmentConfiguration = {
     appointmentDetails: config:getAsString("CRON_EXPRESSION_UPDATE")
@@ -43,17 +44,31 @@ public function processData() {
 
 //Fetch repositories from github and store in database
 function fetchAndStoreAllRepositories() {
+    log:printInfo("==== Fetching repositories =====");
+
     map<Organization> organizations = getAllOrganizationsFromDB();
     map<[int, Repository[]]> repositories = {};
     foreach Organization organization in organizations {
+        log:printInfo("==== Fetching repositories for organization [" + organization.orgName + "] =====");
         Repository[] orgRepos = fetchReposOfOrgFromGithub(organization);
         repositories[organization.id.toString()] = [organization.id, orgRepos];
     }
+
+    log:printInfo("==== Storing repositories =====");
     storeRepositoriesToDB(repositories);
+    log:printInfo("==== Finished storing repositories =====");
 }
 
 //Fetch all issues from github from last update time and store in database
 function fetchAndStoreAllIssues() {
+    log:printInfo("==== Fetching issues =====");
+
+    //==========================================================
+    // Issue processing is bit different from repo processing, due to volume
+    // We'll collect the issues per repo and store then and there, 
+    // rather than collecting all issues of all repositories and then storing together
+    //===========================================================
+
     //Get all organizations from database
     map<Organization> organizations = getAllOrganizationsFromDB();
 
@@ -62,7 +77,7 @@ function fetchAndStoreAllIssues() {
     var retVal = getAllRepositoriesFromDB();
     if (retVal is error) {
         //We can't continue without repositories 
-        log:printError("Not fetching any issues. No repositories found to fetch issues");
+        log:printError("Not fetching any issues. No repositories found to fetch issues", err = retVal);
         return;
     } else {
         repositories = retVal;
@@ -71,9 +86,21 @@ function fetchAndStoreAllIssues() {
     //Get last max updated time of issues per repository
     map<string> lastUpdateDateOfIssuesPerRepo = getLastUpdateDateOfIssuesPerRepo();
 
+    //Get all the issue ids. It is needed to decide whether to update or insert
+    map<[int, time:Time]>|error retResult = getAllIssueIdsFromDB();
+    map<[int, time:Time]> existingIssueIds;
+    if (retResult is error) {
+        //We can't continue. We might endup creating duplicates
+        log:printError("Not storing issue details due to possible duplicate creation", err = retResult);
+        return;
+    } else {
+        existingIssueIds = retResult;
+    }
+
     //Loop through the repo and get the issues
-    map<[int, Issue[]]> issues = {};
     foreach Repository repository in repositories {
+        log:printInfo("==== Fetching issues for repository [" + repository.repoName + "] =====");
+
         //Get the organization of the repo
         Organization org;
         if (!organizations.hasKey(repository.orgId.toString())){
@@ -86,8 +113,8 @@ function fetchAndStoreAllIssues() {
         //Get the last updated date. If it is not there, () is fine. We can get all issues of repo
         string? lastUdatedDate = lastUpdateDateOfIssuesPerRepo[repository.repositoryId.toString()];
         Issue[] issuesOfRepo = fetchIssuesOfRepoFromGithub(repository, org, lastUdatedDate);
-        issues[repository.repositoryId.toString()] = [repository.repositoryId, issuesOfRepo];
+        storeIssuesToDB(repository.repositoryId, issuesOfRepo, existingIssueIds);
     }
 
-    storeIssuesToDB(issues);
+    log:printInfo("==== Finished storing issues =====");
 }

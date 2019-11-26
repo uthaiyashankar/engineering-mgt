@@ -83,8 +83,9 @@ function storeRepositoriesToDB(map<[int, Repository[]]> repositories) {
     foreach [int, Repository[]] [orgId, repositoriesOfOrg] in repositories {
         foreach Repository repository in repositoriesOfOrg {
             string githubIdOfRepo = repository.githubId;
-            string repoName = repository.repositoryName;
+            string repoName = repository.repoName;
             string url = repository.repoURL;
+            string repoType = repository.repoType;
             Repository? existingRepo = existingRepos[githubIdOfRepo];
             if (existingRepo is Repository) {
                 //we already have this in the database. 
@@ -92,9 +93,10 @@ function storeRepositoriesToDB(map<[int, Repository[]]> repositories) {
                 //existing repositories to -1
                 processedRepos[githubIdOfRepo] = existingRepo;
 
-                if (repoName != existingRepo.repositoryName || url != existingRepo.repoURL || orgId != existingRepo.orgId) {
+                if (repoName != existingRepo.repoName || url != existingRepo.repoURL || 
+                    orgId != existingRepo.orgId || repoType != existingRepo.repoType) {
                     //There are some modifications to existing values
-                    var ret = engappDb->update(UPDATE_REPOSITORY, repoName, url, orgId, existingRepo.repositoryId);
+                    var ret = engappDb->update(UPDATE_REPOSITORY, repoName, url, orgId, repoType, existingRepo.repositoryId);
                     if (ret is error){
                         log:printError("Error in updating repository: RepositoryId = [" + 
                             existingRepo.repositoryId.toString() + "], RepoURL = [" + url + "]", err = ret);
@@ -103,7 +105,7 @@ function storeRepositoriesToDB(map<[int, Repository[]]> repositories) {
                 }
             } else {
                 //This is a new repository. We need to insert
-                var ret = engappDb->update(INSERT_REPOSITORY, githubIdOfRepo, repoName, orgId, url);
+                var ret = engappDb->update(INSERT_REPOSITORY, githubIdOfRepo, repoName, orgId, url, repoType);
                 if (ret is error){
                     log:printError("Error in inserting repository: RepositoryGithubId = [" + githubIdOfRepo + 
                         "], RepoURL = [" + url + "]", err = ret);
@@ -118,8 +120,8 @@ function storeRepositoriesToDB(map<[int, Repository[]]> repositories) {
         if (!processedRepos.hasKey(existingRepo.githubId)){
             //This repo is not processed. Hence should be deleted or moved to some other organization. 
             //Hence, update the orgId to -1
-            var ret = engappDb->update(UPDATE_REPOSITORY, existingRepo.repositoryName, existingRepo.repoURL, 
-                unknownOrgId, existingRepo.repositoryId);
+            var ret = engappDb->update(UPDATE_REPOSITORY, existingRepo.repoName, existingRepo.repoURL, 
+                unknownOrgId, existingRepo.repoType, existingRepo.repositoryId);
             if (ret is error){
                 log:printError("Error in updating repository: RepositoryId = [" + 
                     existingRepo.repositoryId.toString() + "], RepoURL = [" + existingRepo.repoURL + "]", err = ret);
@@ -161,62 +163,49 @@ function getAllIssueIdsFromDB() returns map<[int, time:Time]>|error {
     }
 }
 
-function storeIssuesToDB(map<[int, Issue[]]> issues) {
-    //Get all the issue ids. It is needed to decide whether to update or insert
-    map<[int, time:Time]>|error retVal = getAllIssueIdsFromDB();
-    map<[int, time:Time]> existingIssueIds;
-    if (retVal is error) {
-        //We can't continue. We might endup creating duplicates
-        log:printError("Not storing issue details due to possible duplicate creation");
-        return;
-    } else {
-        existingIssueIds = retVal;
-    }
-
+function storeIssuesToDB(int repositoryId, Issue[] issuesOfRepo, map<[int, time:Time]> existingIssueIds) {    
     //Loop through the issues from github and store them to database
-    foreach [int, Issue[]] [repositoryId, issuesOfRepo] in issues {
-        foreach Issue issue in issuesOfRepo {
-            jdbc:Parameter createdTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.createdDate};
-            jdbc:Parameter updatedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.updatedDate};
-            jdbc:Parameter closedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.closedDate};
-            string htmlUrl = issue.issueURL;
-            string githubId = issue.githubId;
-            string createdby = issue.createdBy;
-            string labels = issue.labels;
-            string assignees = issue.assignees;
-            string issueType = issue.issueType;
+    foreach Issue issue in issuesOfRepo {
+        jdbc:Parameter createdTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.createdDate};
+        jdbc:Parameter updatedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.updatedDate};
+        jdbc:Parameter closedTime = { sqlType: jdbc:TYPE_DATETIME, value: issue.closedDate};
+        string htmlUrl = issue.issueURL;
+        string githubId = issue.githubId;
+        string createdby = issue.createdBy;
+        string labels = issue.labels;
+        string assignees = issue.assignees;
+        string issueType = issue.issueType;
 
-            [int, time:Time]? existingIssue = existingIssueIds[githubId];
-            if (existingIssue is [int, time:Time]) {
-                // we already have this in the database. 
-                [int, time:Time] [issueId, lastUpdatedTime] = existingIssue;
+        [int, time:Time]? existingIssue = existingIssueIds[githubId];
+        if (existingIssue is [int, time:Time]) {
+            // we already have this in the database. 
+            [int, time:Time] [issueId, lastUpdatedTime] = existingIssue;
 
-                //Check whether the last update time is same as current issue time
-                if (time:toString(lastUpdatedTime) == issue.updatedDate){
-                    //Last updated time of the issue is same as what we have in the database
-                    //Hence, no need to udpate it again.  
-                    continue;
-                }
+            //Check whether the last update time is same as current issue time
+            if (time:toString(lastUpdatedTime) == issue.updatedDate){
+                //Last updated time of the issue is same as what we have in the database
+                //Hence, no need to udpate it again.  
+                continue;
+            }
 
-                // We are blindly updating without checking whether the values are changed, since we have read from last updated date. 
-                var  ret = engappDb->update(UPDATE_ISSUES, repositoryId, createdTime, updatedTime, closedTime, createdby,
-                    issueType, htmlUrl, labels, assignees, issueId);
-   
-                if (ret is error){
-                    log:printError("Error in updating issues: issueId = [" + 
-                        issueId.toString() + "], issueURL = [" + htmlUrl + "]", err = ret);
-                    //Ignore this update and continue
-                }
-            } else {
-                //This is a new issue. We need to insert
-                var ret = engappDb->update(INSERT_ISSUES, githubId, repositoryId, createdTime, updatedTime, closedTime,
-                    createdby, issueType, htmlUrl, labels, assignees);
-                if (ret is error){
-                    log:printError("Error in inserting issue: issueGithubId = [" + githubId + 
-                        "], issueURL = [" + htmlUrl + "]", err = ret);
-                    log:printError ("Assignees [" + assignees + "]");
-                    //Ignore this insert and continue
-                }
+            // We are blindly updating without checking whether the values are changed, since we have read from last updated date. 
+            var  ret = engappDb->update(UPDATE_ISSUES, repositoryId, createdTime, updatedTime, closedTime, createdby,
+                issueType, htmlUrl, labels, assignees, issueId);
+
+            if (ret is error){
+                log:printError("Error in updating issues: issueId = [" + 
+                    issueId.toString() + "], issueURL = [" + htmlUrl + "]", err = ret);
+                //Ignore this update and continue
+            }
+        } else {
+            //This is a new issue. We need to insert
+            var ret = engappDb->update(INSERT_ISSUES, githubId, repositoryId, createdTime, updatedTime, closedTime,
+                createdby, issueType, htmlUrl, labels, assignees);
+            if (ret is error){
+                log:printError("Error in inserting issue: issueGithubId = [" + githubId + 
+                    "], issueURL = [" + htmlUrl + "]", err = ret);
+                log:printError ("Assignees [" + assignees + "]");
+                //Ignore this insert and continue
             }
         }
     }

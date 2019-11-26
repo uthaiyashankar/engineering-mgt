@@ -27,20 +27,21 @@ http:Client gitClientEP = new ("https://api.github.com",
     }
 );
 
-
-
 function fetchReposOfOrgFromGithub (Organization organization) returns Repository[]{
-    string reqURL = "/users/" + organization.orgName + "/repos?&per_page=100";
+    string reqURL = "/orgs/" + organization.orgName + "/repos?&per_page=100";
     boolean continueOnError = true; //We can still load repositories later
     json[] repositoriesJson = getResponseFromGithub(reqURL, "getting repositories", continueOnError);
     Repository[] repositories = [];
     foreach json repoJson in repositoriesJson {
+        map<json> valueMap = <map<json>>repoJson;
+        boolean isPrivate = <boolean>valueMap["private"];
         Repository repo = {
             githubId: repoJson.id.toString(), 
-            repositoryName: repoJson.name.toString(), 
+            repoName: repoJson.name.toString(), 
             orgId: organization.id,
             repoURL: repoJson.html_url.toString(), 
-            repositoryId: -1
+            repositoryId: -1, 
+            repoType: isPrivate ? REPO_TYPE_PRIVATE : REPO_TYPE_PUBLIC
         };
         repositories.push(repo);
     }
@@ -49,7 +50,7 @@ function fetchReposOfOrgFromGithub (Organization organization) returns Repositor
 }
 
 function fetchIssuesOfRepoFromGithub (Repository repository, Organization organization, string? lastUdatedDate) returns Issue[] {
-    string reqURL = "/repos/" + organization.orgName + "/" + repository.repositoryName.toString() +
+    string reqURL = "/repos/" + organization.orgName + "/" + repository.repoName.toString() +
             "/issues?state=all&per_page=100";
     if (lastUdatedDate is string) {
         //There is a valid last update time. Hence, we can read only the issues updated after that time
@@ -76,7 +77,7 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
         
         //Check whether the type is issue or PR, based on the URL
         int? index = issueJson.html_url.toString().indexOf("pull");
-        string issueType = (index is int) ? "PR" : "ISSUE";
+        string issueType = (index is int) ? ISSUE_TYPE_PR : ISSUE_TYPE_ISSUE;
         Issue issue = {
             issueId: -1,
             githubId: issueJson.id.toString(),
@@ -112,7 +113,6 @@ function getResponseFromGithub (string url, string actionContext, boolean contin
         http:Response|error retVal = gitClientEP->get(reqURL, message = req);
         http:Response response = new; //initialized to avoid compiler warning due to nested loops
         
-
         //Check whether the response is valid
         if (retVal is error) {
             log:printError("Error when calling the github API : " + retVal.detail().toString(), err = retVal);
