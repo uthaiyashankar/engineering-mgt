@@ -40,6 +40,7 @@ type Issue record {
     string closedDate;
     string createdBy;
     string issueType;
+    string issueTitle;
     string issueURL;
     string labels;
     string assignees;
@@ -54,4 +55,17 @@ type IssueIdsAndUpdateTime record {
     int issueId;
     string githubId;
     time:Time updatedTime;
+};
+
+type OpenPR record {
+    int issueId;
+    string prUrl;
+};
+
+type PRReview record {
+    int issueId;
+    string reviewers;
+    string reviewStates;
+    string lastReviewer;
+    string lastState;
 };
