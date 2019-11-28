@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
+import ballerina/time;
 
 string htmlHeader = string `
 <html>
@@ -61,7 +61,7 @@ string htmlHeader = string `
       }
 
       #openprs td, #openprs th {
-        border: 1px solid #ddd;
+        border: 0px solid #ddd;
         padding: 8px;
       }
 
@@ -86,15 +86,15 @@ string htmlHeader = string `
 
 string templateHeader = string `
    <div id = "headings">
-       GitHub Open Pull Request Analyzer
+       <h1>GitHub Open Pull Request Analyzer</h1>
    </div>
    <div id = "subhead">
-     Weekly Update of GitHub Open Pull Requests on Teams
+      <h2>Update of GitHub Open Pull Requests<h2>
    </div>
    <div align = "center">
    <table id="openprs">
    <tr>
-    <th style="width:240px">team Names</th>
+    <th style="width:240px">Team Name</th>
     <th style="width:120px">No of Open PRs</th>
    </tr>
 `;
@@ -105,23 +105,16 @@ string tableTitle = string `</table>
                                 </div>`;
 
 string tableHeading = string `
-       <table id="openprs" width="100%">
+       <table id="openprs" width="95%" align="center" cellspacing="0" cellpadding="0">
          <tr>
-           <th style="width:80px">Team Name</th>
-           <th style="width:120px">Repo Name</th>
-           <th style="width:70px">Updated Date</th>
-           <th style="width:80px">Created By</th>
-           <th style="width:240px">URL</th>
-           <th style="width:50px">Open Days</th>
-           <th style="width:80px">Labels</th>
+           <th style="width=30%">PR Title</th>
+           <th style="width=30%">URL</th>
+           <th style="width=10%">Created By</th>
+           <th style="width=10%">Open Days</th>
+           <th style="width=10%">Updated On</th>
+           <th style="width=10%">Last State</th>
          </tr>
     `;
-
-string tableContent = generateTable();
-string dateContent = string `
-                         <div id = "subhead">
-                             Updated Time <br/>`
-+ UPDATED_DATE + "</div><br/>";
 
 string templateFooter = string `
     <div align = center>
@@ -137,45 +130,101 @@ string htmlFooter = string `
     </body>
     </html> `;
 
+function generateDateContent(string updatedDate) returns string {
+  string dateContent = string `
+                         <div id = "subhead">
+                             Updated Time <br/>`
+      + updatedDate + "</div><br/>";
+  return dateContent;
+}
 
-public function generateContent(json[] data) returns string {
+function generateContent(OpenPROfTeam[] data) returns string {
     string tableData = "";
-    foreach var datum in data {
-        tableData = tableData +
-        "<tr><td align=\"center\">" + datum.teamName.toString() + "</td>" +
-        "<td align=\"center\">" + datum.repoName.toString() + "</td>" +
-        "<td align=\"center\">" + datum.updatedDate.toString() + "</td>" +
-        "<td align=\"center\">" + datum.createdBy.toString() + "</td>" +
-        "<td align=\"left\">" + datum.url.toString() + "</td>" +
-        "<td align=\"right\">" + datum.openDays.toString() + "</td>" +
-        "<td align=\"center\">" + datum.labels.toString() + "</td></tr>";
+    boolean toggleFlag = true;
+    string backgroundColor = BACKGROUND_COLOR_WHITE;   
+    string style = " style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;\""; 
+
+    foreach OpenPROfTeam datum in data {
+        backgroundColor = getBackgroundColor(toggleFlag);
+        toggleFlag = !toggleFlag;
+
+        tableData = tableData + "<tr>";
+        tableData = tableData + "<td width=\"" + "30%" + "\" align=\"center\"" + backgroundColor + style + ">" +
+                           datum.issueTitle + "</td>";
+        tableData = tableData + "<td width=\"" + "30%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+                           datum.htmlURL + "</td>";
+        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+                           datum.createdBy + "</td>";
+        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+                           datum.openDays.toString() + "</td>";
+        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"center\"" + backgroundColor + style + ">" +
+                           time:toString(datum.updatedDate).substring(0, 10) + "</td>";
+        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+                           datum.lastState.toString() + "</td>";
+        tableData = tableData + "</tr>";
     }
     return tableData;
 }
 
 //Generates the summary table content for issue counts for each team for mail template
-public function generateTable() returns string {
-    var teams = retrieveAllTeams();
+function generateTable() returns string {
+    Team[] teams = retrieveAllTeams();
     string summaryTable = "";
     string tableForTeam = "";
-    if (teams is json[]) {
-        int teamIterator = 0;
-        foreach var team in teams {
-            int teamId = <int>team.TEAM_ID;
-            string teamName = team.TEAM_NAME.toString();
-            var data = openPrsForTeam(teamId, teamName);
-            if (data is json[]) {
-                summaryTable = summaryTable + "<tr><td>" + teamName + "</td><td align=\"center\">" + data.length().toString() + "</td></tr>";
-                string tableTitlediv = string `<div id = "title">` + teamName + "</div>";
-                if (data.length() != 0) {
-                    tableForTeam = tableForTeam + tableTitlediv + tableHeading + generateContent(data) + "</table>";
-                }
-            } else {
-                log:printError("Error occured while retrieving the issue details from Database", data);
-            }
+
+    Team? unknownTeam = ();
+    OpenPROfTeam[] unknownTeamPRs = [];
+    int UNKNOWN_TEAM_ID = -1;
+
+    //Formatting options
+    boolean toggleFlag = true;
+    string backgroundColor = "";
+    
+    foreach Team team in teams {
+        OpenPROfTeam[] prs = retrieveAllOpenPRsByTeam (team.teamId);
+        if (team.teamId == UNKNOWN_TEAM_ID) {
+            unknownTeam = team;
+            unknownTeamPRs = prs;
+            //We'll add this at the bottom of the tables
+            continue;
         }
-    } else {
-        log:printError("Error occured while retrieving the issue details from Database", teams);
+
+        backgroundColor = getBackgroundColor(toggleFlag);
+        toggleFlag = !toggleFlag;
+
+        summaryTable = summaryTable + "<tr><td " + backgroundColor + ">" + team.teamName + 
+            "</td><td align=\"center\" " + backgroundColor + ">" + 
+            team.noOfOpenPRs.toString() + "</td></tr>";
+
+        string tableTitlediv = string `<div id = "title"><h3>` + team.teamName + "</h3></div>";
+        if (prs.length() != 0) {
+            tableForTeam = tableForTeam + tableTitlediv + tableHeading + generateContent(prs) + "</table>";
+        }        
     }
+
+    if (unknownTeam is Team) {
+        //Print unknown team details:
+        backgroundColor = getBackgroundColor(toggleFlag);
+        toggleFlag = !toggleFlag;
+
+        summaryTable = summaryTable + "<tr><td " + backgroundColor + ">" + unknownTeam.teamName + 
+            "</td><td align=\"center\" " + backgroundColor + ">" + 
+            unknownTeam.noOfOpenPRs.toString() + "</td></tr>";
+
+        string tableTitlediv = string `<div id = "title">` + unknownTeam.teamName + "</div>";
+        if (unknownTeamPRs.length() != 0) {
+            tableForTeam = tableForTeam + tableTitlediv + tableHeading + generateContent(unknownTeamPRs) + "</table>";
+        }
+    }
+
     return summaryTable + "</table></div>" + tableTitle + tableForTeam;
+}
+
+function getBackgroundColor (boolean toggleFlag) returns string {
+  if (toggleFlag) {
+      return " bgcolor=" + BACKGROUND_COLOR_WHITE;
+  }
+  else {
+      return " bgcolor=" + BACKGROUND_COLOR_GRAY;
+  }
 }
