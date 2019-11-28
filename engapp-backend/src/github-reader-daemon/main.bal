@@ -39,6 +39,7 @@ public function processData() {
     log:printInfo("==== Starting Github Reader Daemon =====");
     fetchAndStoreAllRepositories();
     fetchAndStoreAllIssues();
+    fetchAndStoreOpenPRReviews();
     log:printInfo("==== Finished processing =====");
 }
 
@@ -117,4 +118,24 @@ function fetchAndStoreAllIssues() {
     }
 
     log:printInfo("==== Finished storing issues =====");
+}
+
+function fetchAndStoreOpenPRReviews() {
+    log:printInfo("==== Fetching Open PR reviews =====");
+    // Get all Open PRs
+    OpenPR[] openPRs = getOpenPRsFromDB();
+    PRReview[] reviews = [];
+
+    // Loop through the Open PRs and get the reviews
+    foreach OpenPR openPR in openPRs {
+        PRReview? prReview = fetchPRReviewFromGithub(openPR);
+        if (prReview is PRReview) {
+            reviews.push(prReview);
+        }
+    }
+
+    // Store the reviews
+    log:printInfo("==== Storing open PR reviews =====");
+    storePRReviewsToDB(reviews);
+    log:printInfo("==== Finished storing open PR reviews =====");
 }

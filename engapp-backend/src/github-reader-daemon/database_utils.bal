@@ -175,6 +175,7 @@ function storeIssuesToDB(int repositoryId, Issue[] issuesOfRepo, map<[int, time:
         string labels = issue.labels;
         string assignees = issue.assignees;
         string issueType = issue.issueType;
+        string issueTitle = issue.issueTitle;
 
         [int, time:Time]? existingIssue = existingIssueIds[githubId];
         if (existingIssue is [int, time:Time]) {
@@ -190,7 +191,7 @@ function storeIssuesToDB(int repositoryId, Issue[] issuesOfRepo, map<[int, time:
 
             // We are blindly updating without checking whether the values are changed, since we have read from last updated date. 
             var  ret = engappDb->update(UPDATE_ISSUES, repositoryId, createdTime, updatedTime, closedTime, createdby,
-                issueType, htmlUrl, labels, assignees, issueId);
+                issueType, issueTitle, htmlUrl, labels, assignees, issueId);
 
             if (ret is error){
                 log:printError("Error in updating issues: issueId = [" + 
@@ -200,13 +201,75 @@ function storeIssuesToDB(int repositoryId, Issue[] issuesOfRepo, map<[int, time:
         } else {
             //This is a new issue. We need to insert
             var ret = engappDb->update(INSERT_ISSUES, githubId, repositoryId, createdTime, updatedTime, closedTime,
-                createdby, issueType, htmlUrl, labels, assignees);
+                createdby, issueType, issueTitle, htmlUrl, labels, assignees);
             if (ret is error){
                 log:printError("Error in inserting issue: issueGithubId = [" + githubId + 
                     "], issueURL = [" + htmlUrl + "]", err = ret);
-                log:printError ("Assignees [" + assignees + "]");
                 //Ignore this insert and continue
             }
         }
     }
+}
+
+function getOpenPRsFromDB() returns OpenPR[] {
+    table<OpenPR>|error dbResult = engappDb->select(GET_ALL_OPEN_PRS, OpenPR);
+    OpenPR[] openPRs = [];
+    if (dbResult is error){
+        log:printError("Error occured while retrieving the open pull requests from database: ", err = dbResult);
+    } else {
+        foreach OpenPR pr in dbResult {
+            openPRs.push(pr);
+        }
+    }
+    return <@untainted>openPRs;
+}
+
+function getAllPRReviewsFromDB() returns map<PRReview> {
+    table <PRReview>|error dbResult = engappDb->select(GET_ALL_PR_REVIEWS, PRReview);
+    map<PRReview> existingPRReviews = {};
+    if (dbResult is error){
+        log:printError("Error occured while retrieving the pull request reviews from database: ", err = dbResult);
+    } else {
+        foreach PRReview prReview in dbResult {
+            existingPRReviews[prReview.issueId.toString()] = prReview;
+        }
+    }
+
+    return <@untainted>existingPRReviews;
+}
+
+function storePRReviewsToDB(PRReview[] reviews) {
+    //Get all existing PR reviews
+    map<PRReview> existingPRReviews = getAllPRReviewsFromDB();
+
+    foreach PRReview newReview in reviews {
+        PRReview? existingReview = existingPRReviews[newReview.issueId.toString()];
+        if (existingReview is PRReview) {
+            //We already have this record
+            if (existingReview.reviewers != newReview.reviewers || 
+                existingReview.reviewStates != newReview.reviewStates || 
+                existingReview.lastReviewer != newReview.lastReviewer || 
+                existingReview.lastState != newReview.lastState) {
+                //Something got changed
+                var  ret = engappDb->update(UPDATE_PR_REVIEW, newReview.reviewers, newReview.reviewStates,
+                    newReview.lastReviewer, newReview.lastState, newReview.issueId);
+
+                if (ret is error){
+                    log:printError("Error in updating pr review: issueId = [" + 
+                        newReview.issueId.toString() + "]", err = ret);
+                    //Ignore this update and continue
+                }
+            }
+        } else {
+            //This is a new record
+            var ret = engappDb->update(INSERT_PR_REVIEW, newReview.issueId, newReview.reviewers, newReview.reviewStates,
+                    newReview.lastReviewer, newReview.lastState);
+            if (ret is error){
+                log:printError("Error in inserting pr review: issueId = [" +  
+                    newReview.issueId.toString() + "]", err = ret);
+                //Ignore this insert and continue
+            }
+        }
+    }
+
 }

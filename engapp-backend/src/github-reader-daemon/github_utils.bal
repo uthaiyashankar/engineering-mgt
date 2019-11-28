@@ -76,7 +76,7 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
         }
         
         //Check whether the type is issue or PR, based on the URL
-        int? index = issueJson.html_url.toString().indexOf("pull");
+        int? index = issueJson.html_url.toString().indexOf("/pull/");
         string issueType = (index is int) ? ISSUE_TYPE_PR : ISSUE_TYPE_ISSUE;
         Issue issue = {
             issueId: -1,
@@ -87,6 +87,7 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
             closedDate: issueJson.closed_at.toString(),
             createdBy: issueJson.user.login.toString(),
             issueType: issueType,
+            issueTitle: issueJson.title.toString(),
             issueURL: issueJson.html_url.toString(),
             labels: labels,
             assignees: assignees
@@ -95,6 +96,78 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
     }
 
     return issues;
+}
+
+function fetchPRReviewFromGithub(OpenPR openPR) returns PRReview? {
+    string reqURL = "/repos/" + getReviewReqURL(openPR.prUrl) + "/reviews?&per_page=100";
+    boolean continueOnError = true; //We can still other reviews later
+    json[] reviewsJson = getResponseFromGithub(reqURL, "getting PR reviews", continueOnError);
+
+    string reviewers = "";
+    string reviewStates = "";
+    string lastReviewer = "";
+    string lastState = "";
+    int lastReviewId = 0;
+
+    map<string> reviewerMap = {};
+    map<string> stateMap = {};
+
+    foreach json reviewJson in reviewsJson {
+        int reviewId = <int> reviewJson.id;
+        string reviewer = reviewJson.user.login.toString();
+        string state = reviewJson.state.toString();
+        if (lastReviewId < reviewId){
+            lastReviewId = reviewId;
+            lastReviewer = reviewer;
+            lastState = state;
+        }
+
+        if (!reviewerMap.hasKey(reviewer)){
+            reviewerMap[reviewer] = reviewer; //Remember that we have already added this reviewer
+            reviewers = reviewers + reviewer + ", ";
+        }
+        if (!stateMap.hasKey(state)){
+            stateMap[state] = state;
+            reviewStates = reviewStates + state + ", ";
+        }
+    }
+
+    //Send only if there are something to be sent;
+    if (lastReviewId != 0) {
+        //If there are some reviews, there should be at least of reviewer and state. 
+        //Hence, we need to remove trailing comma. 
+        reviewers =  reviewers.substring(0, reviewers.length() - 2);
+        reviewStates =  reviewStates.substring(0, reviewStates.length() - 2);
+
+        PRReview review = {
+                issueId: openPR.issueId,
+                reviewers: reviewers,
+                reviewStates: reviewStates,
+                lastReviewer: lastReviewer,
+                lastState: lastState
+        };
+        return review;
+    } else {
+        //Nothing to return
+        return;
+    }
+}
+
+function getReviewReqURL (string prURL) returns string {
+    //Exclude github URL part from prURL
+    string githubURL = "https://github.com/";
+    int startLocation = githubURL.length();
+    string subStr = prURL.substring(startLocation, prURL.length());
+
+    //Change "pull" to "pulls"
+    int? pullPartLocation = subStr.indexOf("/pull/");
+    if (pullPartLocation is int) {
+        string finalURLpart = subStr.substring(0, pullPartLocation) + "/pulls/" +
+            subStr.substring(pullPartLocation + 6, subStr.length());
+        return finalURLpart;
+    }
+
+    return "";
 }
 
 function getResponseFromGithub (string url, string actionContext, boolean continueOnError) returns json[] {
@@ -197,3 +270,4 @@ function getIssueAssignees(json[] issueAssignees) returns string {
     }
     return commaSeperatedVal;
 }
+
