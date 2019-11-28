@@ -37,8 +37,8 @@ public function main() {
 
 public function processData() {
     log:printInfo("==== Starting Github Reader Daemon =====");
-    // fetchAndStoreAllRepositories();
-    // fetchAndStoreAllIssues();
+    fetchAndStoreAllRepositories();
+    fetchAndStoreAllIssues();
     fetchAndStoreOpenPRReviews();
     log:printInfo("==== Finished processing =====");
 }
