@@ -44,8 +44,8 @@ public function sendPREmail() {
 
     //=========================
     //=========================
-    io:println("Some text");
-    log:printInfo("Some text");
+    io:println("");
+    log:printInfo("");
     // io:println(mailContent);
     // return;
 

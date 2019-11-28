@@ -48,7 +48,7 @@ string htmlHeader = string `
         font-weight: 350px;
         font-size: 16px;
         color: #777777;
-        padding: 20px;
+        padding-top: 20px;
         text-align: center;
         margin: 10px;
       }
@@ -85,36 +85,37 @@ string htmlHeader = string `
  `;
 
 string templateHeader = string `
-   <div id = "headings">
-       <h1>GitHub Open Pull Request Analyzer</h1>
+   <div id = "headings" style="width:100%; color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;" align="center">
+       <h2>GitHub Open Pull Request Analyzer</h2>
    </div>
-   <div id = "subhead">
-      <h2>Update of GitHub Open Pull Requests<h2>
+   <div id = "title" align="center" style="padding-top:20px;">
+      <h3>Summary<h3>
    </div>
    <div align = "center">
-   <table id="openprs">
+   <table id="openprs" cellspacing="0" cellpadding="10">
    <tr>
-    <th style="width:240px">Team Name</th>
-    <th style="width:120px">No of Open PRs</th>
+    <th style="width:240px; color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;">
+      Team Name</th>
+    <th style="width:120px; color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;">
+      No of Open PRs</th>
    </tr>
 `;
 
-string tableTitle = string `</table>
-                                <div id = "subhead">
-                                    Details of Open Pull Requests
-                                </div>`;
+function getTableHeading() returns string {
+    string style = " style=\" color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;\""; 
 
-string tableHeading = string `
-       <table id="openprs" width="95%" align="center" cellspacing="0" cellpadding="0">
-         <tr>
-           <th style="width=30%">PR Title</th>
-           <th style="width=30%">URL</th>
-           <th style="width=10%">Created By</th>
-           <th style="width=10%">Open Days</th>
-           <th style="width=10%">Updated On</th>
-           <th style="width=10%">Last State</th>
-         </tr>
-    `;
+    string tableHeading = "" +
+        "<table id=\"openprs\" width=\"95%\" align=\"center\"  cellspacing=\"0\" cellpadding=\"10\">" +
+            "<tr>" +
+            "<th width=30% " + style + ">Pull Request Title</th>" +
+            "<th width=30% " + style + ">Pull Request URL</th>" +
+            "<th width=12% " + style + ">Created By</th>" +
+            "<th width=6% " + style + ">Open Days</th>" +
+            "<th width=10% " + style + ">Updated On</th>" +
+            "<th width=12% " + style + ">Last State</th>" +
+         "</tr>";
+    return tableHeading;
+}
 
 string templateFooter = string `
     <div align = center>
@@ -132,9 +133,9 @@ string htmlFooter = string `
 
 function generateDateContent(string updatedDate) returns string {
   string dateContent = string `
-                         <div id = "subhead">
+                         <div id = "subhead" align = "center" style="padding-top:20px;">
                              Updated Time <br/>`
-      + updatedDate + "</div><br/>";
+      + updatedDate + "</div>";
   return dateContent;
 }
 
@@ -142,7 +143,7 @@ function generateContent(OpenPROfTeam[] data) returns string {
     string tableData = "";
     boolean toggleFlag = true;
     string backgroundColor = BACKGROUND_COLOR_WHITE;   
-    string style = " style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;\""; 
+    string style = " style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px;  \""; 
 
     foreach OpenPROfTeam datum in data {
         backgroundColor = getBackgroundColor(toggleFlag);
@@ -151,15 +152,15 @@ function generateContent(OpenPROfTeam[] data) returns string {
         tableData = tableData + "<tr>";
         tableData = tableData + "<td width=\"" + "30%" + "\" align=\"center\"" + backgroundColor + style + ">" +
                            datum.issueTitle + "</td>";
-        tableData = tableData + "<td width=\"" + "30%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+        tableData = tableData + "<td width=\"" + "30%" + "\" align=\"center\"" + backgroundColor + style + ">" +
                            datum.htmlURL + "</td>";
-        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+        tableData = tableData + "<td width=\"" + "12%" + "\" align=\"center\"" + backgroundColor + style + ">" +
                            datum.createdBy + "</td>";
-        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+        tableData = tableData + "<td width=\"" + "6%" + "\" align=\"center\"" + backgroundColor + style + ">" +
                            datum.openDays.toString() + "</td>";
         tableData = tableData + "<td width=\"" + "10%" + "\" align=\"center\"" + backgroundColor + style + ">" +
                            time:toString(datum.updatedDate).substring(0, 10) + "</td>";
-        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"left\"" + backgroundColor + style + ">" +
+        tableData = tableData + "<td width=\"" + "12%" + "\" align=\"center\"" + backgroundColor + style + ">" +
                            datum.lastState.toString() + "</td>";
         tableData = tableData + "</tr>";
     }
@@ -192,13 +193,14 @@ function generateTable() returns string {
         backgroundColor = getBackgroundColor(toggleFlag);
         toggleFlag = !toggleFlag;
 
-        summaryTable = summaryTable + "<tr><td " + backgroundColor + ">" + team.teamName + 
-            "</td><td align=\"center\" " + backgroundColor + ">" + 
+        summaryTable = summaryTable + "<tr><td align=\"center\" " + backgroundColor + " style=\"padding: 15px 10px 5px 10px;\">" + team.teamName + 
+            "</td><td align=\"center\" " + backgroundColor + " style=\"padding: 15px 10px 5px 10px;\">" + 
             team.noOfOpenPRs.toString() + "</td></tr>";
 
-        string tableTitlediv = string `<div id = "title"><h3>` + team.teamName + "</h3></div>";
         if (prs.length() != 0) {
-            tableForTeam = tableForTeam + tableTitlediv + tableHeading + generateContent(prs) + "</table>";
+            string tableTitlediv = "<div id = \"title\" align=\"center\" style=\"padding-top:20px;\"><h3>" + 
+                team.teamName + "</h3></div>";
+            tableForTeam = tableForTeam + tableTitlediv + getTableHeading() + generateContent(prs) + "</table>";
         }        
     }
 
@@ -207,17 +209,18 @@ function generateTable() returns string {
         backgroundColor = getBackgroundColor(toggleFlag);
         toggleFlag = !toggleFlag;
 
-        summaryTable = summaryTable + "<tr><td " + backgroundColor + ">" + unknownTeam.teamName + 
+        summaryTable = summaryTable + "<tr><td align=\"center\" " + backgroundColor + ">" + unknownTeam.teamName + 
             "</td><td align=\"center\" " + backgroundColor + ">" + 
             unknownTeam.noOfOpenPRs.toString() + "</td></tr>";
 
-        string tableTitlediv = string `<div id = "title">` + unknownTeam.teamName + "</div>";
         if (unknownTeamPRs.length() != 0) {
-            tableForTeam = tableForTeam + tableTitlediv + tableHeading + generateContent(unknownTeamPRs) + "</table>";
+            string tableTitlediv = "<div id = \"title\" align=\"center\" style=\"padding-top:20px;\"><h3>" + 
+                unknownTeam.teamName + "</h3></div>";
+            tableForTeam = tableForTeam + tableTitlediv + getTableHeading() + generateContent(unknownTeamPRs) + "</table>";
         }
     }
 
-    return summaryTable + "</table></div>" + tableTitle + tableForTeam;
+    return summaryTable + "</table></div>" + tableForTeam;
 }
 
 function getBackgroundColor (boolean toggleFlag) returns string {
