@@ -27,8 +27,10 @@ http:Client gitClientEP = new ("https://api.github.com",
     }
 );
 
+const ITEM_PER_PAGE = 100;
+
 function fetchReposOfOrgFromGithub (Organization organization) returns Repository[]{
-    string reqURL = "/orgs/" + organization.orgName + "/repos?&per_page=100";
+    string reqURL = "/orgs/" + organization.orgName + "/repos?&per_page=" + ITEM_PER_PAGE.toString();
     boolean continueOnError = false; //We can still load repositories later
     json[] repositoriesJson = getResponseFromGithub(reqURL, "getting repositories", continueOnError);
     Repository[] repositories = [];
@@ -51,7 +53,7 @@ function fetchReposOfOrgFromGithub (Organization organization) returns Repositor
 
 function fetchIssuesOfRepoFromGithub (Repository repository, Organization organization, string? lastUdatedDate) returns Issue[] {
     string reqURL = "/repos/" + organization.orgName + "/" + repository.repoName.toString() +
-            "/issues?state=all&per_page=100";
+            "/issues?state=all&per_page=" + ITEM_PER_PAGE.toString();
     if (lastUdatedDate is string) {
         //There is a valid last update time. Hence, we can read only the issues updated after that time
         reqURL = reqURL + "&since=" + lastUdatedDate;
@@ -99,7 +101,7 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
 }
 
 function fetchPRReviewFromGithub(OpenPR openPR) returns PRReview? {
-    string reqURL = "/repos/" + getReviewReqURL(openPR.prUrl) + "/reviews?&per_page=100";
+    string reqURL = "/repos/" + getReviewReqURL(openPR.prUrl) + "/reviews?&per_page=" + ITEM_PER_PAGE.toString();
     boolean continueOnError = false; 
     json[] reviewsJson = getResponseFromGithub(reqURL, "getting PR reviews", continueOnError);
 
@@ -233,11 +235,10 @@ function getResponseFromGithub (string url, string actionContext, boolean contin
 
         //All checkes are validated. Process the response and store them
         json[] pageResponseArr = <json[]>respJson;
-        if (pageResponseArr.length() == 0) {
+        mergeArrays(combinedResponseArr, pageResponseArr);
+        if (pageResponseArr.length() < ITEM_PER_PAGE) {
             //No more issues to fetch
             break;
-        } else {
-            mergeArrays(combinedResponseArr, pageResponseArr);
         }
     }
     return combinedResponseArr;
