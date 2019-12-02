@@ -29,7 +29,7 @@ http:Client gitClientEP = new ("https://api.github.com",
 
 function fetchReposOfOrgFromGithub (Organization organization) returns Repository[]{
     string reqURL = "/orgs/" + organization.orgName + "/repos?&per_page=100";
-    boolean continueOnError = true; //We can still load repositories later
+    boolean continueOnError = false; //We can still load repositories later
     json[] repositoriesJson = getResponseFromGithub(reqURL, "getting repositories", continueOnError);
     Repository[] repositories = [];
     foreach json repoJson in repositoriesJson {
@@ -100,7 +100,7 @@ function fetchIssuesOfRepoFromGithub (Repository repository, Organization organi
 
 function fetchPRReviewFromGithub(OpenPR openPR) returns PRReview? {
     string reqURL = "/repos/" + getReviewReqURL(openPR.prUrl) + "/reviews?&per_page=100";
-    boolean continueOnError = true; //We can still other reviews later
+    boolean continueOnError = false; 
     json[] reviewsJson = getResponseFromGithub(reqURL, "getting PR reviews", continueOnError);
 
     string reviewers = "";
