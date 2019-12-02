@@ -176,6 +176,7 @@ function generateTable() returns string {
     Team? unknownTeam = ();
     OpenPROfTeam[] unknownTeamPRs = [];
     int UNKNOWN_TEAM_ID = -1;
+    int IGNORE_TEAM_ID = 0;
 
     //Formatting options
     boolean toggleFlag = true;
@@ -187,6 +188,9 @@ function generateTable() returns string {
             unknownTeam = team;
             unknownTeamPRs = prs;
             //We'll add this at the bottom of the tables
+            continue;
+        } else if (team.teamId == IGNORE_TEAM_ID){
+            //We'll ignore this teams
             continue;
         }
 
