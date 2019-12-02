@@ -17,6 +17,8 @@
 import ballerina/config;
 import ballerina/log;
 import wso2/gmail;
+import ballerina/time;
+import ballerina/io;
 
 gmail:GmailConfiguration gmailConfig = {
     oauthClientConfig: {
@@ -30,24 +32,34 @@ gmail:GmailConfiguration gmailConfig = {
     }
 };
 
-string mail_subject = "[Open Pr's] Open Pull Requests: " + UPDATED_DATE;
-string mail_template = htmlHeader + templateHeader + tableContent + dateContent + templateFooter + htmlFooter;
-
-string userId = "me";
-gmail:MessageRequest messageRequest = {
-    recipient: config:getAsString("GMAIL_RECIPIENT"),
-    sender: config:getAsString("GMAIL_SENDER"),
-    cc: config:getAsString("GMAIL_CC"),
-    subject: "Open PR Analzer",
-    messageBody: mail_template,
-    contentType: gmail:TEXT_HTML
-};
-
 gmail:Client gmailClient = new (gmailConfig);
-string messageId = "";
-string threadId = "";
 
 public function sendPREmail() {
+    string updatedDate = time:toString(time:currentTime()).substring(0, 10);
+    string mailSubject = "[Open PR] Open Pull Requests: " + updatedDate;
+    string tableContent = generateTable();
+    string dateContent = generateDateContent(updatedDate);
+    string mailContent = htmlHeader + templateHeader + tableContent + dateContent + templateFooter + htmlFooter;
+
+
+    //=========================
+    //=========================
+    io:println("");
+    log:printInfo("");
+    // io:println(mailContent);
+    // return;
+
+    string userId = "me"; //Special string for the currently authenticated user
+
+    gmail:MessageRequest messageRequest = {
+        recipient: config:getAsString("GMAIL_RECIPIENT"),
+        sender: config:getAsString("GMAIL_SENDER"),
+        cc: config:getAsString("GMAIL_CC"),
+        subject: mailSubject,
+        messageBody: mailContent,
+        contentType: gmail:TEXT_HTML
+    };
+
     var sendMessageResponse = gmailClient->sendMessage(userId, messageRequest);
     if (sendMessageResponse is [string, string]) {
         // If successful, print the message ID and thread ID.
@@ -56,6 +68,6 @@ public function sendPREmail() {
         log:printInfo("Sent Thread ID: " + threadId);
     } else {
         // If unsuccessful, print the error returned.
-        log:printError("Error: ", sendMessageResponse);
+        log:printError("Error in sending email ", err = sendMessageResponse);
     }
 }

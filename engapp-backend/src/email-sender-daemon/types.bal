@@ -1,4 +1,4 @@
-//Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,21 +14,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/task;
-import ballerina/config;
+import ballerina/time;
 
-task:AppointmentConfiguration appointmentConfiguration = {
-    appointmentDetails: config:getAsString("CRON_EXPRESSION_MAIL")
+type Team record {
+    int teamId;
+    string teamName;
+    int noOfOpenPRs;
 };
 
-listener task:Listener appointment = new (appointmentConfiguration);
-
-// service appointmentService on appointment {
-//     resource function onTrigger() {
-//         sendPREmail();
-//     }
-// }
-
-public function main() {
-    sendPREmail();
-}
+type OpenPROfTeam record {
+    string issueTitle;
+    string htmlURL;
+    string createdBy;
+    int openDays;
+    time:Time updatedDate;
+    string lastState;
+};

@@ -15,11 +15,11 @@
 // under the License.
 
 import ballerina/config;
-import ballerina/jsonutils;
+// import ballerina/jsonutils;
 import ballerina/log;
 import ballerinax/java.jdbc;
 
-jdbc:Client githubDb = new ({
+jdbc:Client engappDb = new ({
     url: config:getAsString("DB_URL"),
     username: config:getAsString("DB_USERNAME"),
     password: config:getAsString("DB_PASSWORD"),
@@ -27,46 +27,55 @@ jdbc:Client githubDb = new ({
 });
 
 //Retrieves the team details from the database
-function retrieveAllTeams() returns json[]? {
-    var teams = githubDb->select(RETRIEVE_TEAMS, ());
-    if (teams is table<record {}>) {
-        json teamJson = jsonutils:fromTable(teams);
-        return <json[]>teamJson;
-    } else {
-        log:printDebug("Error occured while retrieving the team details from Database");
-    }
-}
-
-function retrieveAllIssuesByTeam(int teamId) returns json[]? {
-    var issues = githubDb->select(RETRIEVE_ISSUES_BY_TEAM, (), teamId);
-    if (issues is table<record {}>) {
-        json issuesJson = jsonutils:fromTable(issues);
-        return <json[]>issuesJson;
-    } else {
-        log:printDebug("Error occured while retrieving the repo details from Database");
-    }
-}
-
-//Retrieves the count of open PRs for each team
-function openPrsForTeam(int teamId, string teamName) returns json[]? {
-    json[] prJson = [];
-    var prs = retrieveAllIssuesByTeam(teamId);
-    if (prs is json[]) {
-        foreach var pr in prs {
-            json prDetail = {
-                teamName: teamName,
-                repoName: pr.REPOSITORY_NAME.toString(),
-                updatedDate: pr.UPDATED_DATE.toString(),
-                createdBy: pr.CREATED_BY.toString(),
-                url: pr.HTML_URL.toString(),
-                openDays: pr.OPEN_DAYS.toString(),
-                labels: pr.LABELS.toString()
-            };
-            prJson.push(prDetail);
+function retrieveAllTeams() returns Team[] {
+    var dbResult = engappDb->select(RETRIEVE_TEAMS_AND_OPENPR_COUNT, Team);
+    Team[] teams = [];
+    if (dbResult is table<Team>) {
+        foreach Team team in dbResult {
+            teams.push(team);
         }
     } else {
-        log:printError("Returned value is not a json. Error occured while retrieving the issue details from Database", 
-            err = prs);
+        log:printError("Error occured while retrieving the team details from Database", err = dbResult);
+        //Yet, we'll ignore the error and return empty array
     }
-    return <json[]>prJson;
+
+    return teams;
 }
+
+function retrieveAllOpenPRsByTeam(int teamId) returns OpenPROfTeam[] {
+    var dbResult = engappDb->select(RETRIEVE_OPENPR_BY_TEAM, OpenPROfTeam, teamId);
+    OpenPROfTeam[] prs = [];
+    if (dbResult is table<OpenPROfTeam>) {
+        foreach OpenPROfTeam pr in dbResult {
+            prs.push(pr);
+        }
+    } else {
+        log:printError("Error occured while retrieving the open PR details from Database", err = dbResult);
+        log:printError("Context: TeamID = [" + teamId.toString() + "]");
+    }
+    return prs;
+}
+
+// //Retrieves the count of open PRs for each team
+// function openPrsForTeam(int teamId, string teamName) returns json[]? {
+//     json[] prJson = [];
+//     var prs = retrieveAllIssuesByTeam(teamId);
+//     if (prs is json[]) {
+//         foreach var pr in prs {
+//             json prDetail = {
+//                 teamName: teamName,
+//                 repoName: pr.REPOSITORY_NAME.toString(),
+//                 updatedDate: pr.UPDATED_DATE.toString(),
+//                 createdBy: pr.CREATED_BY.toString(),
+//                 url: pr.HTML_URL.toString(),
+//                 openDays: pr.OPEN_DAYS.toString(),
+//                 labels: pr.LABELS.toString()
+//             };
+//             prJson.push(prDetail);
+//         }
+//     } else {
+//         log:printError("Returned value is not a json. Error occured while retrieving the issue details from Database", 
+//             err = prs);
+//     }
+//     return <json[]>prJson;
+// }
