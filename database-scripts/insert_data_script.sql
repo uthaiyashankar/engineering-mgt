@@ -13,6 +13,7 @@ INSERT INTO `ENGAPP_GITHUB_ORGANIZATIONS` VALUES
 
 INSERT INTO `ENGAPP_TEAMS` VALUES 
 (-1, 'Unknown', 'Unknown', 'Other'),
+(0, 'Ignore', 'Ignore', 'Other'),
 (1, 'API Manager', 'APIM', 'Product'),
 (2, 'Integration', 'EI', 'Product'),
 (3, 'Identitiy & Access Management', 'IAM', 'Product'),
