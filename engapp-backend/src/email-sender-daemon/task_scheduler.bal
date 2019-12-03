@@ -30,5 +30,5 @@ service appointmentService on appointment {
 }
 
 public function main() {
-    // sendPREmail();
+    sendPREmail();
 }
