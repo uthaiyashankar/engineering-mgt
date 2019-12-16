@@ -107,7 +107,7 @@ function generateOpenPRDetailsTableContent(OpenPROfTeam[] data) returns string {
 
 //Generates the summary table content for issue counts for each team for mail template
 function generateOpenPRTable() returns string {
-    Team[] teams = retrieveAllTeams();
+    Team[] teams = retrieveAllTeamsAndOpenPRCount();
     string summaryTable = "";
     string tableForTeam = "";
     int IGNORE_TEAM_ID = 0;
@@ -124,14 +124,14 @@ function generateOpenPRTable() returns string {
         }
 
         OpenPROfTeam[] prs = retrieveAllOpenPRsByTeam (team.teamId);
-        totalOpenPRs = totalOpenPRs + team.noOfOpenPRs;
+        totalOpenPRs = totalOpenPRs + team.count;
         
         cellStyle = getCellStyle(toggleFlag);
         toggleFlag = !toggleFlag;
         summaryTable = summaryTable + string`
             <tr>
               <td ${cellStyle}>${team.teamName}</td>
-              <td ${cellStyle}>${team.noOfOpenPRs.toString()}</td>
+              <td ${cellStyle}>${team.count.toString()}</td>
             </tr>`;
 
         if (prs.length() != 0) {

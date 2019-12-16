@@ -27,7 +27,7 @@ jdbc:Client engappDb = new ({
 });
 
 //Retrieves the team details from the database
-function retrieveAllTeams() returns Team[] {
+function retrieveAllTeamsAndOpenPRCount() returns Team[] {
     var dbResult = engappDb->select(RETRIEVE_TEAMS_AND_OPENPR_COUNT, Team);
     Team[] teams = [];
     if (dbResult is table<Team>) {

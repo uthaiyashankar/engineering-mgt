@@ -38,22 +38,25 @@ public function sendPREmail() {
     string updatedDate = time:toString(time:currentTime()).substring(0, 10);
     string mailSubject = "[Open PR] Open Pull Requests: " + updatedDate;
     
-    
     string htmlHeader = getHtmlHeaderAndStyles("Open PR Details", "GitHub Open Pull Request Analyzer");
     string summaryTableheader = getSummaryTableHeader("Summary", "Team Name", "No of Open PRs");
     string tableContent = generateOpenPRTable();
     string dateContent = generateDateContent(updatedDate);
     string mailContent = htmlHeader + summaryTableheader + tableContent + dateContent + templateFooter + htmlFooter;
 
+    sendEmail(mailSubject, mailContent);
+}
+
+public function sendEmail (string mailSubject, string mailContent) {
+    string userId = "me"; //Special string for the currently authenticated user
 
     //=========================
+    //Only for debug purposes
     //=========================
     io:println("");
     log:printInfo("");
     // io:println(mailContent);
     // return;
-
-    string userId = "me"; //Special string for the currently authenticated user
 
     gmail:MessageRequest messageRequest = {
         recipient: config:getAsString("GMAIL_RECIPIENT"),

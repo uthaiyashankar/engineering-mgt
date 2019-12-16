@@ -19,7 +19,7 @@ import ballerina/time;
 type Team record {
     int teamId;
     string teamName;
-    int noOfOpenPRs;
+    int count;
 };
 
 type OpenPROfTeam record {
