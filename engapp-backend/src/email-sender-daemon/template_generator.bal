@@ -111,6 +111,7 @@ function generateOpenPRTable() returns string {
     string summaryTable = "";
     string tableForTeam = "";
     int IGNORE_TEAM_ID = 0;
+    int totalOpenPRs = 0;
 
     //Formatting options
     boolean toggleFlag = true;
@@ -123,10 +124,10 @@ function generateOpenPRTable() returns string {
         }
 
         OpenPROfTeam[] prs = retrieveAllOpenPRsByTeam (team.teamId);
+        totalOpenPRs = totalOpenPRs + team.noOfOpenPRs;
         
         cellStyle = getCellStyle(toggleFlag);
         toggleFlag = !toggleFlag;
-
         summaryTable = summaryTable + string`
             <tr>
               <td ${cellStyle}>${team.teamName}</td>
@@ -138,6 +139,13 @@ function generateOpenPRTable() returns string {
                 generateOpenPRDetailsTableContent(prs) + "</table>";
         }        
     }
+
+    //Print total
+    summaryTable = summaryTable + string`
+      <tr>
+        <td ${getTotalCellStyle()}>Total</td>
+        <td ${getTotalCellStyle()}>${totalOpenPRs}</td>
+      </tr>`;
 
     return summaryTable + "</table>" + tableForTeam;
 }
@@ -153,4 +161,8 @@ function getCellStyle (boolean toggleFlag) returns string {
 
 function getTableHeaderCellStyle (string width) returns string{
   return string `style="width:${width};background-color: #044767;color: #fff;padding: 10px;"`;
+}
+
+function getTotalCellStyle() returns string{
+  return string `style="background-color:#c0c0c0;padding: 10px;"`;
 }
