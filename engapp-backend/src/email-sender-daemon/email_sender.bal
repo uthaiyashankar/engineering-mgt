@@ -37,9 +37,13 @@ gmail:Client gmailClient = new (gmailConfig);
 public function sendPREmail() {
     string updatedDate = time:toString(time:currentTime()).substring(0, 10);
     string mailSubject = "[Open PR] Open Pull Requests: " + updatedDate;
-    string tableContent = generateTable();
+    
+    
+    string htmlHeader = getHtmlHeaderAndStyles("Open PR Details", "GitHub Open Pull Request Analyzer");
+    string summaryTableheader = getSummaryTableHeader("Summary", "Team Name", "No of Open PRs");
+    string tableContent = generateOpenPRTable();
     string dateContent = generateDateContent(updatedDate);
-    string mailContent = htmlHeader + templateHeader + tableContent + dateContent + templateFooter + htmlFooter;
+    string mailContent = htmlHeader + summaryTableheader + tableContent + dateContent + templateFooter + htmlFooter;
 
 
     //=========================

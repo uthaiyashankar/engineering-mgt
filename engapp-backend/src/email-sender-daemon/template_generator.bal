@@ -16,222 +16,141 @@
 
 import ballerina/time;
 
-string htmlHeader = string `
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Open PR Details</title>
-      <style>
-        #headings {
-        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-        width: 100%;
-        background-color: #044767;
-        color: #fff;
-        padding: 10px;
-        text-align: center;
-        font-weight: 600px;
-        font-size: 20px;
-        margin-bottom: 10px;
-        margin-top: 30px;
-      }
-        #subhead {
-        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-        font-weight: 400px;
-        font-size: 18px;
-        color: #777777;
-        padding: 20px;
-        text-align: center;
-        margin: 10px;
-      }
-        #title {
-        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-        font-weight: 350px;
-        font-size: 16px;
-        color: #777777;
-        padding-top: 20px;
-        text-align: center;
-        margin: 10px;
-      }
-      #openprs {
-        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-        border-collapse: collapse;
-        margin: 20px;
-        font-weight: 200px;
-        font-size: 14px;
-      }
+function getHtmlHeaderAndStyles(string title, string heading) returns string {
+    string htmlHeader = string `
+    <html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>${title}</title>
+      </head>
+      <body>
+        <div id="body-content" style="font-family: Open Sans, Arial, Helvetica, sans-serif;text-align: center;font-weight: 400px;line-height: 20px;">
+          <div id="headings" style="background-color: #044767;color: #fff;padding: 10px;">
+            <h2>${heading}</h2>
+          </div>`;
+    
+    return htmlHeader;
+}
 
-      #openprs td, #openprs th {
-        border: 0px solid #ddd;
-        padding: 8px;
-      }
+function getSummaryTableHeader (string heading, string groupColumn, string resultColumn) returns string {
+    string templateHeader = string `
+      <div class="title" style="color: #777777;padding-top: 20px;">
+        <h3>${heading}<h3>
+      </div>
+      <table style="border-collapse: collapse;display: inline-block;text-align: center;line-height: 20px;font-size: 14px;">
+        <tr>
+          <th ${getTableHeaderCellStyle("240px")}>${groupColumn}</th>
+          <th ${getTableHeaderCellStyle("120px")}>${resultColumn}</th>
+        </tr>`;
+    return templateHeader;
+}
 
-      #openprs tr{
-        background-color: #dedede;
-      }
-      #openprs tr:hover {background-color: #dedede;}
-      #openprs th {
-          padding-top: 12px;
-          padding-bottom: 12px;
-          text-align: center;
-          background-color: #044767;
-          color: #fff;
-        }
-      #openprs tr:nth-child(even) td{background-color: #efefef;}
-      #openprs tr:nth-child(odd) td{background: #dedede;}
-
-    </style>
-  </head>
-  <body>
- `;
-
-string templateHeader = string `
-   <div id = "headings" style="width:100%; color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;" align="center">
-       <h2>GitHub Open Pull Request Analyzer</h2>
-   </div>
-   <div id = "title" align="center" style="padding-top:20px;">
-      <h3>Summary<h3>
-   </div>
-   <div align = "center">
-   <table id="openprs" cellspacing="0" cellpadding="10">
-   <tr>
-    <th style="width:240px; color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;">
-      Team Name</th>
-    <th style="width:120px; color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;">
-      No of Open PRs</th>
-   </tr>
-`;
-
-function getTableHeading() returns string {
-    string style = " style=\" color:#fff; background:#044767; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px; padding: 15px 10px 5px 10px;\""; 
-
-    string tableHeading = "" +
-        "<table id=\"openprs\" width=\"95%\" align=\"center\"  cellspacing=\"0\" cellpadding=\"10\">" +
-            "<tr>" +
-            "<th width=30% " + style + ">Pull Request Title</th>" +
-            "<th width=30% " + style + ">Pull Request URL</th>" +
-            "<th width=12% " + style + ">Created By</th>" +
-            "<th width=6% " + style + ">Open Days</th>" +
-            "<th width=10% " + style + ">Updated On</th>" +
-            "<th width=12% " + style + ">Last State</th>" +
-         "</tr>";
-    return tableHeading;
+function getOpenPRDetailsTableHeading(string teamName) returns string {
+    string detailTableHeader = string `
+    <div class="title" style="color: #777777;padding-top: 20px;">
+      <h3>${teamName}</h3>
+    </div>
+    <table style="border-collapse: collapse;display: inline-block;text-align: center;line-height: 20px;font-size: 14px;width:95%;">
+      <tr>
+        <th ${getTableHeaderCellStyle("30%")}>Pull Request Title</th>
+        <th ${getTableHeaderCellStyle("30%")}>Pull Request URL</th>
+        <th ${getTableHeaderCellStyle("12%")}>Created By</th>
+        <th ${getTableHeaderCellStyle("6%")}>Open Days</th>
+        <th ${getTableHeaderCellStyle("10%")}>Updated On</th>
+        <th ${getTableHeaderCellStyle("12%")}>Last State</th>
+      </tr>`;
+    return detailTableHeader;
 }
 
 string templateFooter = string `
-    <div align = center>
-        <img src="https://upload.wikimedia.org/wikipedia/en/5/56/WSO2_Software_Logo.png" width="90" height="37"
-            style="display: block; border: 0px;>
-        <p align="center" >
+    <div>
+        <img id="logo" src="https://upload.wikimedia.org/wikipedia/en/5/56/WSO2_Software_Logo.png" style="width:90px;height:37px;display: inline-block;" />
+        <p>
             Copyright (c) 2019 | WSO2 Inc.<br/>All Right Reserved.
         </p>
     </div>
 `;
 
 string htmlFooter = string `
+    </div>
     </body>
     </html> `;
 
 function generateDateContent(string updatedDate) returns string {
   string dateContent = string `
-                         <div id = "subhead" align = "center" style="padding-top:20px;">
+                         <div id = "subhead" style="color: #777777;padding: 20px;">
                              Updated Time <br/>`
       + updatedDate + "</div>";
   return dateContent;
 }
 
-function generateContent(OpenPROfTeam[] data) returns string {
+function generateOpenPRDetailsTableContent(OpenPROfTeam[] data) returns string {
     string tableData = "";
     boolean toggleFlag = true;
-    string backgroundColor = BACKGROUND_COLOR_WHITE;   
-    string style = " style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px;  \""; 
+    string cellStyle = "";
 
     foreach OpenPROfTeam datum in data {
-        backgroundColor = getBackgroundColor(toggleFlag);
+        cellStyle = getCellStyle(toggleFlag);
         toggleFlag = !toggleFlag;
-
-        tableData = tableData + "<tr>";
-        tableData = tableData + "<td width=\"" + "30%" + "\" align=\"center\"" + backgroundColor + style + ">" +
-                           datum.issueTitle + "</td>";
-        tableData = tableData + "<td width=\"" + "30%" + "\" align=\"center\"" + backgroundColor + style + ">" +
-                           datum.htmlURL + "</td>";
-        tableData = tableData + "<td width=\"" + "12%" + "\" align=\"center\"" + backgroundColor + style + ">" +
-                           datum.createdBy + "</td>";
-        tableData = tableData + "<td width=\"" + "6%" + "\" align=\"center\"" + backgroundColor + style + ">" +
-                           datum.openDays.toString() + "</td>";
-        tableData = tableData + "<td width=\"" + "10%" + "\" align=\"center\"" + backgroundColor + style + ">" +
-                           time:toString(datum.updatedDate).substring(0, 10) + "</td>";
-        tableData = tableData + "<td width=\"" + "12%" + "\" align=\"center\"" + backgroundColor + style + ">" +
-                           datum.lastState.toString() + "</td>";
-        tableData = tableData + "</tr>";
+        tableData = tableData + string `
+          <tr>
+            <td ${cellStyle}>${datum.issueTitle}</td>
+            <td ${cellStyle}>${datum.htmlURL}</td>
+            <td ${cellStyle}>${datum.createdBy}</td>
+            <td ${cellStyle}>${datum.openDays.toString()}</td>
+            <td ${cellStyle}>${time:toString(datum.updatedDate).substring(0, 10)}</td>
+            <td ${cellStyle}>${datum.lastState}</td>
+          </tr>`;
     }
     return tableData;
 }
 
 //Generates the summary table content for issue counts for each team for mail template
-function generateTable() returns string {
+function generateOpenPRTable() returns string {
     Team[] teams = retrieveAllTeams();
     string summaryTable = "";
     string tableForTeam = "";
-
-    Team? unknownTeam = ();
-    OpenPROfTeam[] unknownTeamPRs = [];
-    int UNKNOWN_TEAM_ID = -1;
     int IGNORE_TEAM_ID = 0;
 
     //Formatting options
     boolean toggleFlag = true;
-    string backgroundColor = "";
+    string cellStyle = "";
     
     foreach Team team in teams {
-        OpenPROfTeam[] prs = retrieveAllOpenPRsByTeam (team.teamId);
-        if (team.teamId == UNKNOWN_TEAM_ID) {
-            unknownTeam = team;
-            unknownTeamPRs = prs;
-            //We'll add this at the bottom of the tables
-            continue;
-        } else if (team.teamId == IGNORE_TEAM_ID){
+        if (team.teamId == IGNORE_TEAM_ID){
             //We'll ignore this teams
             continue;
         }
 
-        backgroundColor = getBackgroundColor(toggleFlag);
+        OpenPROfTeam[] prs = retrieveAllOpenPRsByTeam (team.teamId);
+        
+        cellStyle = getCellStyle(toggleFlag);
         toggleFlag = !toggleFlag;
 
-        summaryTable = summaryTable + "<tr><td align=\"center\" " + backgroundColor + " style=\"padding: 15px 10px 5px 10px;\">" + team.teamName + 
-            "</td><td align=\"center\" " + backgroundColor + " style=\"padding: 15px 10px 5px 10px;\">" + 
-            team.noOfOpenPRs.toString() + "</td></tr>";
+        summaryTable = summaryTable + string`
+            <tr>
+              <td ${cellStyle}>${team.teamName}</td>
+              <td ${cellStyle}>${team.noOfOpenPRs.toString()}</td>
+            </tr>`;
 
         if (prs.length() != 0) {
-            string tableTitlediv = "<div id = \"title\" align=\"center\" style=\"padding-top:20px;\"><h3>" + 
-                team.teamName + "</h3></div>";
-            tableForTeam = tableForTeam + tableTitlediv + getTableHeading() + generateContent(prs) + "</table>";
+            tableForTeam = tableForTeam + getOpenPRDetailsTableHeading(team.teamName) + 
+                generateOpenPRDetailsTableContent(prs) + "</table>";
         }        
     }
 
-    if (unknownTeam is Team) {
-        //Print unknown team details:
-        backgroundColor = getBackgroundColor(toggleFlag);
-        toggleFlag = !toggleFlag;
-
-        summaryTable = summaryTable + "<tr><td align=\"center\" " + backgroundColor + ">" + unknownTeam.teamName + 
-            "</td><td align=\"center\" " + backgroundColor + ">" + 
-            unknownTeam.noOfOpenPRs.toString() + "</td></tr>";
-
-        if (unknownTeamPRs.length() != 0) {
-            string tableTitlediv = "<div id = \"title\" align=\"center\" style=\"padding-top:20px;\"><h3>" + 
-                unknownTeam.teamName + "</h3></div>";
-            tableForTeam = tableForTeam + tableTitlediv + getTableHeading() + generateContent(unknownTeamPRs) + "</table>";
-        }
-    }
-
-    return summaryTable + "</table></div>" + tableForTeam;
+    return summaryTable + "</table>" + tableForTeam;
 }
 
-function getBackgroundColor (boolean toggleFlag) returns string {
+function getCellStyle (boolean toggleFlag) returns string {
   if (toggleFlag) {
-      return " bgcolor=" + BACKGROUND_COLOR_WHITE;
+      return "style=\"background-color:" + BACKGROUND_COLOR_WHITE + ";padding: 10px;\"";
   }
   else {
-      return " bgcolor=" + BACKGROUND_COLOR_GRAY;
+      return "style=\"background-color:" + BACKGROUND_COLOR_GRAY + ";padding: 10px;\"";
   }
+}
+
+function getTableHeaderCellStyle (string width) returns string{
+  return string `style="width:${width};background-color: #044767;color: #fff;padding: 10px;"`;
 }
