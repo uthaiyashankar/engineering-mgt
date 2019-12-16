@@ -23,12 +23,14 @@ task:AppointmentConfiguration appointmentConfiguration = {
 
 listener task:Listener appointment = new (appointmentConfiguration);
 
-// service appointmentService on appointment {
-//     resource function onTrigger() {
-//         sendPREmail();
-//     }
-// }
+service appointmentService on appointment {
+    resource function onTrigger() {
+        sendPREmail();
+        sendIssueEmail();
+    }
+}
 
 public function main() {
-    sendPREmail();
+    // sendPREmail();
+    // sendIssueEmail();
 }

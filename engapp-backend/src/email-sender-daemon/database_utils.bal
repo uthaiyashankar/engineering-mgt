@@ -27,8 +27,8 @@ jdbc:Client engappDb = new ({
 });
 
 //Retrieves the team details from the database
-function retrieveAllTeamsAndOpenPRCount() returns Team[] {
-    var dbResult = engappDb->select(RETRIEVE_TEAMS_AND_OPENPR_COUNT, Team);
+function retrieveAllTeamsAndOpenItemCount(string issueType) returns Team[] {
+    var dbResult = engappDb->select(RETRIEVE_TEAMS_AND_OPEN_ITEM_COUNT, Team, issueType);
     Team[] teams = [];
     if (dbResult is table<Team>) {
         foreach Team team in dbResult {
@@ -56,26 +56,16 @@ function retrieveAllOpenPRsByTeam(int teamId) returns OpenPROfTeam[] {
     return prs;
 }
 
-// //Retrieves the count of open PRs for each team
-// function openPrsForTeam(int teamId, string teamName) returns json[]? {
-//     json[] prJson = [];
-//     var prs = retrieveAllIssuesByTeam(teamId);
-//     if (prs is json[]) {
-//         foreach var pr in prs {
-//             json prDetail = {
-//                 teamName: teamName,
-//                 repoName: pr.REPOSITORY_NAME.toString(),
-//                 updatedDate: pr.UPDATED_DATE.toString(),
-//                 createdBy: pr.CREATED_BY.toString(),
-//                 url: pr.HTML_URL.toString(),
-//                 openDays: pr.OPEN_DAYS.toString(),
-//                 labels: pr.LABELS.toString()
-//             };
-//             prJson.push(prDetail);
-//         }
-//     } else {
-//         log:printError("Returned value is not a json. Error occured while retrieving the issue details from Database", 
-//             err = prs);
-//     }
-//     return <json[]>prJson;
-// }
+function retrieveAllOpenIssuesByTeam(int teamId) returns OpenIssuesOfTeam[] {
+    var dbResult = engappDb->select(RETRIEVE_OPEN_ISSUES_BY_TEAM, OpenIssuesOfTeam, teamId);
+    OpenIssuesOfTeam[] issues = [];
+    if (dbResult is table<OpenIssuesOfTeam>) {
+        foreach OpenIssuesOfTeam issue in dbResult {
+            issues.push(issue);
+        }
+    } else {
+        log:printError("Error occured while retrieving the open issue details from Database", err = dbResult);
+        log:printError("Context: TeamID = [" + teamId.toString() + "]");
+    }
+    return issues;
+}

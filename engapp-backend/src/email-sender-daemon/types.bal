@@ -30,3 +30,8 @@ type OpenPROfTeam record {
     time:Time updatedDate;
     string lastState;
 };
+
+type OpenIssuesOfTeam record {
+    string repoURL;
+    int count;
+};

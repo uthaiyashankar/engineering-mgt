@@ -47,6 +47,19 @@ public function sendPREmail() {
     sendEmail(mailSubject, mailContent);
 }
 
+public function sendIssueEmail() {
+    string updatedDate = time:toString(time:currentTime()).substring(0, 10);
+    string mailSubject = "[Open Issues] Open Issue Details: " + updatedDate;
+    
+    string htmlHeader = getHtmlHeaderAndStyles("Open Issue Details", "GitHub Open Issue Analyzer");
+    string summaryTableheader = getSummaryTableHeader("Summary", "Team Name", "No of Open Issues");
+    string tableContent = generateOpenIssueTable();
+    string dateContent = generateDateContent(updatedDate);
+    string mailContent = htmlHeader + summaryTableheader + tableContent + dateContent + templateFooter + htmlFooter;
+
+    sendEmail(mailSubject, mailContent);
+}
+
 public function sendEmail (string mailSubject, string mailContent) {
     string userId = "me"; //Special string for the currently authenticated user
 

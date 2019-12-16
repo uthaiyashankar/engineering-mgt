@@ -37,29 +37,12 @@ function getSummaryTableHeader (string heading, string groupColumn, string resul
       <div class="title" style="color: #777777;padding-top: 20px;">
         <h3>${heading}<h3>
       </div>
-      <table style="border-collapse: collapse;display: inline-block;text-align: center;line-height: 20px;font-size: 14px;">
+      <table ${getTableStyle()}>
         <tr>
           <th ${getTableHeaderCellStyle("240px")}>${groupColumn}</th>
           <th ${getTableHeaderCellStyle("120px")}>${resultColumn}</th>
         </tr>`;
     return templateHeader;
-}
-
-function getOpenPRDetailsTableHeading(string teamName) returns string {
-    string detailTableHeader = string `
-    <div class="title" style="color: #777777;padding-top: 20px;">
-      <h3>${teamName}</h3>
-    </div>
-    <table style="border-collapse: collapse;display: inline-block;text-align: center;line-height: 20px;font-size: 14px;width:95%;">
-      <tr>
-        <th ${getTableHeaderCellStyle("30%")}>Pull Request Title</th>
-        <th ${getTableHeaderCellStyle("30%")}>Pull Request URL</th>
-        <th ${getTableHeaderCellStyle("12%")}>Created By</th>
-        <th ${getTableHeaderCellStyle("6%")}>Open Days</th>
-        <th ${getTableHeaderCellStyle("10%")}>Updated On</th>
-        <th ${getTableHeaderCellStyle("12%")}>Last State</th>
-      </tr>`;
-    return detailTableHeader;
 }
 
 string templateFooter = string `
@@ -84,8 +67,20 @@ function generateDateContent(string updatedDate) returns string {
   return dateContent;
 }
 
-function generateOpenPRDetailsTableContent(OpenPROfTeam[] data) returns string {
-    string tableData = "";
+function generateOpenPRDetailsTable (string teamName, OpenPROfTeam[] data) returns string {
+    string tableData = string `
+      <div class="title" style="color: #777777;padding-top: 20px;">
+        <h3>${teamName}</h3>
+      </div>
+      <table ${getTableStyle()}>
+        <tr>
+          <th ${getTableHeaderCellStyle("30%")}>Pull Request Title</th>
+          <th ${getTableHeaderCellStyle("30%")}>Pull Request URL</th>
+          <th ${getTableHeaderCellStyle("12%")}>Created By</th>
+          <th ${getTableHeaderCellStyle("6%")}>Open Days</th>
+          <th ${getTableHeaderCellStyle("10%")}>Updated On</th>
+          <th ${getTableHeaderCellStyle("12%")}>Last State</th>
+        </tr>`;
     boolean toggleFlag = true;
     string cellStyle = "";
 
@@ -102,12 +97,39 @@ function generateOpenPRDetailsTableContent(OpenPROfTeam[] data) returns string {
             <td ${cellStyle}>${datum.lastState}</td>
           </tr>`;
     }
+    tableData = tableData + "</table>";
     return tableData;
 }
 
-//Generates the summary table content for issue counts for each team for mail template
+function generateOpenIssuesDetailsTable (string teamName, OpenIssuesOfTeam[] data) returns string {
+    string tableData = string `
+      <div class="title" style="color: #777777;padding-top: 20px;">
+        <h3>${teamName}</h3>
+      </div>
+      <table ${getTableStyle()}>
+        <tr>
+          <th ${getTableHeaderCellStyle("480px")}>Repository URL</th>
+          <th ${getTableHeaderCellStyle("120px")}>Open Issues</th>
+        </tr>`;
+    boolean toggleFlag = true;
+    string cellStyle = "";
+
+    foreach OpenIssuesOfTeam datum in data {
+        cellStyle = getCellStyle(toggleFlag);
+        toggleFlag = !toggleFlag;
+        tableData = tableData + string `
+          <tr>
+            <td ${cellStyle}>${datum.repoURL}</td>
+            <td ${cellStyle}>${datum.count}</td>
+          </tr>`;
+    }
+    tableData = tableData + "</table>";
+    return tableData;
+}
+
+//Generates the summary table content for PR counts for each team for mail template
 function generateOpenPRTable() returns string {
-    Team[] teams = retrieveAllTeamsAndOpenPRCount();
+    Team[] teams = retrieveAllTeamsAndOpenItemCount(TYPE_PR);
     string summaryTable = "";
     string tableForTeam = "";
     int IGNORE_TEAM_ID = 0;
@@ -135,8 +157,7 @@ function generateOpenPRTable() returns string {
             </tr>`;
 
         if (prs.length() != 0) {
-            tableForTeam = tableForTeam + getOpenPRDetailsTableHeading(team.teamName) + 
-                generateOpenPRDetailsTableContent(prs) + "</table>";
+            tableForTeam = tableForTeam +  generateOpenPRDetailsTable(team.teamName, prs);
         }        
     }
 
@@ -145,6 +166,50 @@ function generateOpenPRTable() returns string {
       <tr>
         <td ${getTotalCellStyle()}>Total</td>
         <td ${getTotalCellStyle()}>${totalOpenPRs}</td>
+      </tr>`;
+
+    return summaryTable + "</table>" + tableForTeam;
+}
+
+//Generates the summary table content for Issue counts for each team for mail template
+function generateOpenIssueTable() returns string {
+    Team[] teams = retrieveAllTeamsAndOpenItemCount(TYPE_ISSUE);
+    string summaryTable = "";
+    string tableForTeam = "";
+    int IGNORE_TEAM_ID = 0;
+    int totalOpenIssues = 0;
+
+    //Formatting options
+    boolean toggleFlag = true;
+    string cellStyle = "";
+    
+    foreach Team team in teams {
+        if (team.teamId == IGNORE_TEAM_ID){
+            //We'll ignore this teams
+            continue;
+        }
+
+        OpenIssuesOfTeam[] issues = retrieveAllOpenIssuesByTeam (team.teamId);
+        totalOpenIssues = totalOpenIssues + team.count;
+        
+        cellStyle = getCellStyle(toggleFlag);
+        toggleFlag = !toggleFlag;
+        summaryTable = summaryTable + string`
+            <tr>
+              <td ${cellStyle}>${team.teamName}</td>
+              <td ${cellStyle}>${team.count.toString()}</td>
+            </tr>`;
+
+        if (issues.length() != 0) {
+            tableForTeam = tableForTeam +  generateOpenIssuesDetailsTable(team.teamName, issues);
+        }        
+    }
+
+    //Print total
+    summaryTable = summaryTable + string`
+      <tr>
+        <td ${getTotalCellStyle()}>Total</td>
+        <td ${getTotalCellStyle()}>${totalOpenIssues}</td>
       </tr>`;
 
     return summaryTable + "</table>" + tableForTeam;
@@ -165,4 +230,8 @@ function getTableHeaderCellStyle (string width) returns string{
 
 function getTotalCellStyle() returns string{
   return string `style="background-color:#c0c0c0;padding: 10px;"`;
+}
+
+function getTableStyle() returns string {
+  return string `style="border-collapse: collapse;display: inline-block;text-align: center;line-height: 20px;font-size: 14px;"`;
 }
