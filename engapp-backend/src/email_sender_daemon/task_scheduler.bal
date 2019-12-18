@@ -25,12 +25,15 @@ listener task:Listener appointment = new (appointmentConfiguration);
 
 service appointmentService on appointment {
     resource function onTrigger() {
-        sendPREmail();
-        sendIssueEmail();
+        sendEmails();
     }
 }
 
 public function main() {
-    // sendPREmail();
-    // sendIssueEmail();
+    // sendEmails();
+}
+
+function sendEmails() {
+    sendPREmail();
+    sendIssueEmail();
 }
