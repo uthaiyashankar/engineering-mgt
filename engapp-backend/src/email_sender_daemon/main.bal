@@ -16,6 +16,7 @@
 
 import ballerina/task;
 import ballerina/config;
+import ballerina/log;
 
 task:AppointmentConfiguration appointmentConfiguration = {
     appointmentDetails: config:getAsString("CRON_EXPRESSION_MAIL")
@@ -31,6 +32,7 @@ service appointmentService on appointment {
 
 public function main() {
     // sendEmails();
+    log:printInfo("=========== Email Sender Started ===========");
 }
 
 function sendEmails() {
