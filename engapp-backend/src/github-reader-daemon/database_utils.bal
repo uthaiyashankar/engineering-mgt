@@ -73,7 +73,7 @@ function storeRepositoriesToDB(map<[int, Repository[]]> repositories) {
     map<Repository> processedRepos = {};
     if (retVal is error) {
         //We can't continue to store, since we might create duplicate here. 
-        log:printError("Not storing repository details due to possible duplicate creation");
+        log:printError("Not storing repository details due to possible duplicate creation", err = retVal);
         return;
     } else {
         existingRepos = retVal;
@@ -272,4 +272,151 @@ function storePRReviewsToDB(PRReview[] reviews) {
         }
     }
 
+}
+
+function storeUsersToDB(map<[int, User[]]> users){
+    //Get all existing users
+    map<User>|error retVal = getAllUsersFromDB();
+    map<User> existingUsers;
+    if (retVal is error) {
+        //We can't continue to store, since we might create duplicate here. 
+        log:printError("Not storing user details due to possible duplicate creation", err = retVal);
+        return;
+    } else {
+        existingUsers = retVal;
+    }
+
+    //Get all existing organization+users
+    map<int[]>|error orgUsersRetVal = getAllOrgUsersFromDB();
+    map<int[]> existingOrgUsers;
+    if (orgUsersRetVal is error) {
+        //We can't continue to store, since we might create duplicate here. 
+        log:printError("Not storing user details due to possible duplicate creation", err = orgUsersRetVal);
+        return;
+    } else {
+        existingOrgUsers = orgUsersRetVal;
+    }
+
+    foreach [int, User[]] [orgId, orgUsers] in users {
+        int[] currentOrgUsers = [];
+        var val = existingOrgUsers[orgId.toString()];
+        if (val is int[]){
+            currentOrgUsers = val;
+        }
+
+        foreach User user in orgUsers {
+            string githubId = user.githubId;
+            if (existingUsers.hasKey(githubId)){
+                //user already exists.. Check whether there are anything changed. 
+                User existingUser = <User>existingUsers[githubId];
+                if (existingUser.loginName != user.loginName) ||
+                (existingUser.name != user.name) ||
+                (existingUser.company != user.company) ||
+                (existingUser.email != user.email) ||
+                (existingUser.profileUrl != user.profileUrl) ||
+                (existingUser.websiteUrl != user.websiteUrl) {
+                    //Something is different. Update the record
+                    var ret = engappDb->update(UPDATE_USER, user.loginName, user.name, user.company, user.email, 
+                            user.profileUrl, user.websiteUrl, existingUser.userId);
+                    if (ret is error){
+                        log:printError("Error in updating Users: userId = [" + 
+                            existingUser.userId.toString() + "], login = [" + existingUser.loginName + "]", err = ret);
+                        //Ignore this update and continue
+                    }
+
+                    //Also, remember the new values
+                    user.userId = existingUser.userId;
+                    existingUsers[githubId] = user;
+                }
+
+                //Check whether this user is an existing member of the organization
+                int? index = currentOrgUsers.indexOf(existingUser.userId);
+                if (index is int){
+                    //We alreay have this member. So, don't need to do anything. 
+
+                    //Remove from the array, so that, we can delete if any removed members
+                    _ = currentOrgUsers.remove(index);
+                } else {
+                    //This is a new member. Need to insert
+                    var ret = engappDb->update(INSERT_ORG_USER, orgId, existingUser.userId);
+                    if (ret is error){
+                        log:printError("Error in inserting organization user : userId = [" + 
+                            existingUser.userId.toString() + "], orgId = [" + orgId.toString() + "]", err = ret);
+                        //Ignore this update and continue
+                    }
+                }   
+            } else {
+                //New user. Have to insert new record
+                var ret = engappDb->update(INSERT_USER, user.githubId, user.loginName, user.name, user.company, user.email, 
+                            user.profileUrl, user.websiteUrl);
+                if (ret is error){
+                    log:printError("Error in inserting Users: user github Id = [" + 
+                        user.githubId.toString() + "], login = [" + user.loginName + "]", err = ret);
+                    //Ignore this update and continue
+                } else {
+                    //Get the last inserted Id
+                    int userId = <int>ret.generatedKeys["GENERATED_KEY"];
+                    //Insert the organization user
+                    var retOrgUser = engappDb->update(INSERT_ORG_USER, orgId, userId);
+                    if (retOrgUser is error){
+                        log:printError("Error in inserting organization user : userId = [" + 
+                            userId.toString() + "], orgId = [" + orgId.toString() + "]", err = retOrgUser);
+                        //Ignore this update and continue
+                    }
+
+                    //Also, remember the new values so that further inserts for org will get this value
+                    user.userId = userId;
+                    existingUsers[githubId] = user;
+                }
+            }
+        }
+
+        //All users have been updated. Remaining users should be deleted
+        foreach int userId in currentOrgUsers {
+            var ret = engappDb->update(DELETE_ORG_USER, orgId, userId);
+            if (ret is error){
+                log:printError("Error in deleting organization user : userId = [" + 
+                    userId.toString() + "], orgId = [" + orgId.toString() + "]", err = ret);
+                //Ignore this update and continue
+            }
+        }
+    }
+}
+
+//Get all existing User details from the database
+function getAllUsersFromDB() returns map<User>|error {
+    table<User>|error dbResult = engappDb->select(GET_ALL_USERS, User);
+
+    if (dbResult is error){
+        log:printError("Error occured while retrieving the users from database: ", err = dbResult);
+        return <@untainted> dbResult;
+    } else {
+        map<User> existingUsers = {};
+        foreach User user in dbResult {
+            existingUsers[user.githubId] = user;
+        }
+        //Nothing to untaint
+        return <@untainted> existingUsers;
+    }    
+}
+
+//Get all existing Organization User details from the database
+function getAllOrgUsersFromDB() returns map<int[]>|error {
+    table<OrgUser>|error dbResult = engappDb->select(GET_ALL_ORG_USERS, OrgUser);
+
+    if (dbResult is error){
+        log:printError("Error occured while retrieving the organization users from database: ", err = dbResult);
+        return <@untainted> dbResult;
+    } else {
+        map<int[]> existingOrgUsers = {};
+        foreach OrgUser user in dbResult {
+            if (!existingOrgUsers.hasKey(user.orgId.toString())){
+                existingOrgUsers[user.orgId.toString()] = [];
+            } 
+            int[] orgUsers = <int[]> existingOrgUsers[user.orgId.toString()];
+            orgUsers.push(user.userId);
+        }
+        //Nothing to untaint
+        return <@untainted> existingOrgUsers;
+    }    
 }

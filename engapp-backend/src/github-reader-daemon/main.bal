@@ -37,9 +37,10 @@ public function main() {
 
 public function processData() {
     log:printInfo("==== Starting Github Reader Daemon =====");
-    fetchAndStoreAllRepositories();
-    fetchAndStoreAllIssues();
-    fetchAndStoreOpenPRReviews();
+    // fetchAndStoreAllRepositories();
+    // fetchAndStoreAllIssues();
+    // fetchAndStoreOpenPRReviews();
+    fetchAndStoreAllUsers();
     log:printInfo("==== Finished processing =====");
 }
 
@@ -138,4 +139,21 @@ function fetchAndStoreOpenPRReviews() {
     log:printInfo("==== Storing open PR reviews =====");
     storePRReviewsToDB(reviews);
     log:printInfo("==== Finished storing open PR reviews =====");
+}
+
+//Fetch repositories from github and store in database
+function fetchAndStoreAllUsers() {
+    log:printInfo("==== Fetching Users =====");
+
+    map<Organization> organizations = getAllOrganizationsFromDB();
+    map<[int, User[]]> users = {};
+    foreach Organization organization in organizations {
+        log:printInfo("==== Fetching users for organization [" + organization.orgName + "] =====");
+        User[] orgUsers = fetchUsersOfOrgFromGithub(organization);
+        users[organization.id.toString()] = [organization.id, orgUsers];
+    }
+
+    log:printInfo("==== Storing users =====");
+    storeUsersToDB(users);
+    log:printInfo("==== Finished storing users =====");
 }

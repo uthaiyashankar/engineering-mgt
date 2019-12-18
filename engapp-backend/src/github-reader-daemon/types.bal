@@ -69,3 +69,19 @@ type PRReview record {
     string lastReviewer;
     string lastState;
 };
+
+type User record {
+    int userId;
+    string githubId;
+    string loginName;
+    string name;
+    string company;
+    string email;
+    string profileUrl;
+    string websiteUrl;
+};
+
+type OrgUser record {
+    int orgId;
+    int userId;
+};
