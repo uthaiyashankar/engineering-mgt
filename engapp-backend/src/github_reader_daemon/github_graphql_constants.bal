@@ -14,9 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//The pattern is : GITHUB_VARIABLES + variables + GITHUB_QUERY_START + query + GITHUB_QUERY_END
-
-string GITHUB_PAGINATION_ENDCURSOR = "endCursor";
 string GITHUB_PAGINATION = string `
 pageInfo{
   endCursor,
@@ -30,16 +27,14 @@ rateLimit{
   resetAt
 }`;
 
-//=====================================
-//Getting members of Organizations
-//=====================================
-string GET_MEMBERS_OF_ORG_VAR_ORG = "organization";
+string GITHUB_VAR_ENDCURSOR = "endCursor";
+string GITHUB_VAR_ORG = "organization";
 
-string QUERY_GET_MEMBERS_OF_ORG = string `
-query($${GET_MEMBERS_OF_ORG_VAR_ORG}: String!, $${GITHUB_PAGINATION_ENDCURSOR}: String){
+string QUERY_GET_USERS_OF_ORG = string `
+query($${GITHUB_VAR_ORG}: String!, $${GITHUB_VAR_ENDCURSOR}: String){
   ${GITHUB_RATELIMIT},
-  organization(login:$${GET_MEMBERS_OF_ORG_VAR_ORG}){
-    membersWithRole(first:100, after:$${GITHUB_PAGINATION_ENDCURSOR}) {
+  organization(login:$${GITHUB_VAR_ORG}){
+    membersWithRole(first:100, after:$${GITHUB_VAR_ENDCURSOR}) {
       ${GITHUB_PAGINATION},
       nodes {
         id,
@@ -54,3 +49,96 @@ query($${GET_MEMBERS_OF_ORG_VAR_ORG}: String!, $${GITHUB_PAGINATION_ENDCURSOR}: 
   }
 }`;
 
+string QUERY_GET_REPOS_OF_ORG = string `
+query($${GITHUB_VAR_ORG}: String!, $${GITHUB_VAR_ENDCURSOR}: String){
+  ${GITHUB_RATELIMIT},
+  organization(login:$${GITHUB_VAR_ORG}){
+    repositories(first:100, after:$${GITHUB_VAR_ENDCURSOR}) {
+      ${GITHUB_PAGINATION},
+      nodes {
+        databaseId,
+        name,
+        url,
+        isPrivate
+      }
+    }
+  }
+}`;
+
+
+// query($endCursor:String, $since:DateTime){
+//   repository(name:"analytics-is", owner:"wso2"){
+//     issues(first:10, after:$endCursor, filterBy:{since:$since}){
+//       nodes{
+//         title,
+//         url,
+//         createdAt,
+//         updatedAt,
+//         closedAt,
+//         assignees(first:10){
+//           nodes{
+//             login
+//           }
+//         },
+//         labels(first:10){
+//           nodes{
+//             name
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+
+
+// 2019-12-05T05:19:03Z
+// query($endCursor:String){
+//   repository(name:"analytics-is", owner:"wso2"){
+//     pullRequests(first:100, after:$endCursor, states:[OPEN]){
+//       nodes{
+//         title,
+//         url,
+//         createdAt,
+//         updatedAt,
+//         closedAt,
+//         reviews(last:1){
+//           nodes{
+//             author{
+//               login
+//             },
+//             state
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+
+// query{
+//   rateLimit{
+//     cost,
+//     remaining,
+//     resetAt
+//   },
+// 	search(type:ISSUE, first:100, query:"repo:wso2/analytics-is is:pr updated:>2019-10-15T07:11:48Z"){
+//     pageInfo{
+//       endCursor,
+//       hasNextPage
+//     },
+//     nodes{
+//       ... on PullRequest{
+//         url,
+//         title
+//         createdAt
+//         updatedAt
+//         closedAt
+//         state
+//         reviews(last:1){
+//           nodes{
+//             state
+//           }
+//         }
+//       }
+//     }
+//   }
+// }

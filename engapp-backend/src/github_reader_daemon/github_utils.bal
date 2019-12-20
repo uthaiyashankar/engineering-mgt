@@ -37,28 +37,6 @@ config = {
 
 const ITEM_PER_PAGE = 100;
 
-function fetchReposOfOrgFromGithub(Organization organization) returns Repository[] {
-    string reqURL = "/orgs/" + organization.orgName + "/repos?&per_page=" + ITEM_PER_PAGE.toString();
-    boolean continueOnError = false;    //We can load repositories later
-    json[] repositoriesJson = getResponseFromGithub(reqURL, "getting repositories", continueOnError);
-    Repository[] repositories = [];
-    foreach json repoJson in repositoriesJson {
-        map<json> valueMap = <map<json>>repoJson;
-        boolean isPrivate = <boolean>valueMap["private"];
-        Repository repo = {
-            githubId: repoJson.id.toString(),
-            repoName: repoJson.name.toString(),
-            orgId: organization.id,
-            repoURL: repoJson.html_url.toString(),
-            repositoryId: -1,
-            repoType: isPrivate ? REPO_TYPE_PRIVATE : REPO_TYPE_PUBLIC
-        };
-        repositories.push(repo);
-    }
-
-    return repositories;
-}
-
 function fetchIssuesOfRepoFromGithub(Repository repository, Organization organization, string? lastUdatedDate) returns Issue[] {
     string reqURL = "/repos/" + organization.orgName + "/" + repository.repoName.toString() +
     "/issues?state=all&per_page=" + ITEM_PER_PAGE.toString();
@@ -280,19 +258,49 @@ function getIssueAssignees(json[] issueAssignees) returns string {
     return commaSeperatedVal;
 }
 
+function fetchReposOfOrgFromGithub(Organization organization) returns Repository[] {
+    //Create the variable:
+    map<json> queryVariable = {};
+    Repository[] repositories = [];
+    queryVariable[GITHUB_VAR_ORG] = organization.orgName;
 
+    function (json) returns json | error getObjectFn = function (json respJson) returns json | error {
+        return respJson.data.organization.repositories;
+    };
+
+    json[] | error repositoriesJson = getReponseFromGithubGraphql(QUERY_GET_REPOS_OF_ORG, queryVariable, "GetRepositories", getObjectFn);
+    if (repositoriesJson is error) {
+        log:printError("Error when getting Repositories of organization [" + organization.orgName + "]", err = repositoriesJson);
+    } else {
+        foreach json repoJson in repositoriesJson {
+            boolean isPrivate = <boolean>repoJson.isPrivate;
+
+            Repository repo = {
+                githubId: repoJson.databaseId.toString(),
+                repoName: repoJson.name.toString(),
+                orgId: organization.id,
+                repoURL: repoJson.url.toString(),
+                repositoryId: -1,
+                repoType: isPrivate ? REPO_TYPE_PRIVATE : REPO_TYPE_PUBLIC
+            };
+            repositories.push(repo);
+        }
+    }
+
+    return repositories;
+}
 
 function fetchUsersOfOrgFromGithub(Organization organization) returns User[] {
     //Create the variable:
     map<json> queryVariable = {};
     User[] users = [];
-    queryVariable[GET_MEMBERS_OF_ORG_VAR_ORG] = organization.orgName;
+    queryVariable[GITHUB_VAR_ORG] = organization.orgName;
 
     function (json) returns json | error getObjectFn = function (json respJson) returns json | error {
         return respJson.data.organization.membersWithRole;
     };
 
-    json[] | error usersJson = getReponseFromGithubGraphql(QUERY_GET_MEMBERS_OF_ORG, queryVariable, "GetUsers", getObjectFn);
+    json[] | error usersJson = getReponseFromGithubGraphql(QUERY_GET_USERS_OF_ORG, queryVariable, "GetUsers", getObjectFn);
     if (usersJson is error) {
         log:printError("Error when getting Users of organization [" + organization.orgName + "]", err = usersJson);
     } else {
@@ -326,7 +334,7 @@ function getReponseFromGithubGraphql(string query, map<json> queryVariable, stri
     req.addHeader("Authorization", "token " + config:getAsString("GITHUB_AUTH_KEY"));
 
     while (hasNextPage) {
-        queryVariable[GITHUB_PAGINATION_ENDCURSOR] = endCursor;
+        queryVariable[GITHUB_VAR_ENDCURSOR] = endCursor;
         string strVariable = queryVariable.toJsonString();
         string requestQuery = string `{"variables":${strVariable},"query":"${query}"}`;
         json reqJson = check requestQuery.fromJsonString();
